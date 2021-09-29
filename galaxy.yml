@@ -1,0 +1,26 @@
+---
+namespace: nebulon
+name: nebulon_on
+version: 1.0.0
+readme: README.md
+authors:
+  - Sarang Nazari
+  - Sepehr Foroughi Shafiei
+  - Shayan Namaghi
+description: Collection of Ansible modules to manage Nebulon smartInfrastructure
+license: GPLv3
+tags:
+  - data
+  - storage
+  - infrastructure
+  - cloud
+  - nebulon
+dependencies: {}
+repository: https://github.com/Nebulon/NebulonON-Collection
+documentation: https://github.com/Nebulon/NebulonON-Collection
+homepage: https://github.com/Nebulon/NebulonON-Collection
+issues: https://github.com/Nebulon/NebulonON-Collection/issues
+build_ignore:
+  - tests
+  - '*.tar.gz'
+  - '.DS_Store'
