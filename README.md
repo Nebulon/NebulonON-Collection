@@ -30,6 +30,7 @@ smartInfrastructure and cloud services.
 - neb_volume_info - To query nPod volumes
 - neb_npod_group - To create, modify or delete a Nebulon nPod group
 - neb_npod_group_info - To query Nebulon ON nPod groups
+- neb_host_info - To query information on hosts
 
 
 ## Getting started
@@ -81,7 +82,7 @@ tasks:
 ```
 
 ## License
-[GLPv3 License](https://www.gnu.org/licenses/gpl-3.0.en.html)
+[GPLv3 License](https://www.gnu.org/licenses/gpl-3.0.en.html)
 
 ## Authors
 This collection was created in 2021 by Sarang Nazari, Sepehr Foroughi Shafiei
