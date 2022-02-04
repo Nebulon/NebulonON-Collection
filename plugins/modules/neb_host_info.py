@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Copyright (C) 2021 Nebulon, Inc.
+# Copyright (C) 2022 Nebulon, Inc.
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -211,11 +211,10 @@ def get_host_info_list(module, client):
                         )
                     )
                 )
-
             )
         )
-        for i in range(len(host_list.items)):
-            host_info_list.append(to_dict(host_list.items[i]))
+        for host in host_list.items:
+            host_info_list.append(to_dict(host))
         if not host_list.more:
             break
         page_number += 1

@@ -7,7 +7,7 @@ smartInfrastructure and cloud services.
 - Ansible-core 2.10 or higher
 - Python 3.6 or higher
 - Internet connectivity to https://ucapi.nebcloud.nebuloninc.com/ from host where Ansible is executed
-- Nebulon Python SDK 1.0 (version 2.0 is currently not supported)
+- Nebulon Python SDK 1.0.15
 
 ## Available modules
 - neb_claim_spu - To claim or release a SPU
@@ -31,6 +31,7 @@ smartInfrastructure and cloud services.
 - neb_npod_group - To create, modify or delete a Nebulon nPod group
 - neb_npod_group_info - To query Nebulon ON nPod groups
 - neb_host_info - To query information on hosts
+- neb_ntp - To set NTP server configuration
 
 
 ## Getting started
@@ -38,16 +39,16 @@ To use the Nebulon Ansible modules, install the collection from Ansible
 Galaxy or build and install from source code. The recommended installation procedure
 to use Ansible Galaxy
 
-## To Install Nebulon Python SDK:
+### To Install Nebulon Python SDK:
 To install the Nebulon Python SDK use the following command:
 
 ```
-python3 -m pip install nebpyclient==1.0.14
+python3 -m pip install -r requirements.txt
 ```
 Refer to Nebulon [Python SDK installation](https://nebulon.github.io/nebpyclient/installation.html)
 page for more detail.
 
-## Installation of Collections using Ansible Galaxy
+### Installation of Collections using Ansible Galaxy
 The easiest way to get started by use of ansible-galaxy. Use the following
 command to install the latest collection:
 
@@ -55,7 +56,7 @@ command to install the latest collection:
 ansible-galaxy collection install nebulon.nebulon_on -p ~/.ansible/collections
 ```
 
-## Building from source
+### Building from source
 Use the following command to build the Nebulon Collection from source code. 
 
 ```
@@ -71,7 +72,7 @@ ansible-galaxy collection install nebulon-nebulon_on-{version number}.tar.gz
 ```
 To get the latest version number please refer to galaxy.yml in the source code
 
-## Using collections in a Playbook
+### Using collections in a Playbook
 Once installed, you can reference a collection content by its fully qualified 
 collection name (FQCN). FQCN for the Nebulon Ansible Collection is: nebulon.nebulon_on
 
@@ -80,6 +81,19 @@ tasks:
 - name: query volumes
   nebulon.nebulon_on.neb_volume_info:
 ```
+
+## Changelog
+
+### 1.1.0 - 02/04/2022
+
+* Added module `neb_host_info` that returns detailed information for host
+* Added module `neb_ntp` that allows configuring SPU NTP server information
+* Fixed an issue where module `neb_spu_info` would always default to 
+  `false` for parameter `not_in_pod` instead of `None`
+  
+### 1.0.0 
+
+* Initial release of the Nebulon Ansible Collection
 
 ## License
 [GPLv3 License](https://www.gnu.org/licenses/gpl-3.0.en.html)

@@ -1,2 +1,2 @@
-nebpyclient<2.0
+nebpyclient==1.0.15
 ansible>=3.0

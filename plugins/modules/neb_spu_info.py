@@ -23,9 +23,9 @@ __metaclass__ = type
 DOCUMENTATION = r"""
 ---
 module: neb_spu_info
-short_description: returns details for a Nebulon On SPUs
+short_description: returns details for a Nebulon ON SPUs
 description:
-  - This module returns details for a nebulon On Services Processing Unit(SPU).
+  - This module returns details for a Nebulon ON Services Processing Unit(SPU).
 author:
   - Nebulon Team (@nebulon) <info@nebulon.com>
 options:
@@ -35,9 +35,8 @@ options:
     elements: str
     required: true
   not_in_npod:
-    description: Determines if returns SPUs that are allocated to a pod
+    description: Determines if returns SPUs that are allocated to a nPod
     type: bool
-    default: false
     required: false
 extends_documentation_fragment:
   - nebulon.nebulon_on.login_util_options
@@ -271,7 +270,7 @@ spus:
           returned: always
           type: bool
     last_reported:
-      description: Date and time when the SPU last reported state to nebulon ON
+      description: Date and time when the SPU last reported state to Nebulon ON
       returned: always
       type: str
     reset_reason_int:
@@ -353,7 +352,7 @@ def get_spu_info_list(module, client):
 def main():
     module_args = dict(
         spu_serials=dict(required=True, type='list', elements='str'),
-        not_in_npod=dict(required=False, type='bool', default=False)
+        not_in_npod=dict(required=False, type='bool', default=None)
     )
     module_args.update(get_login_arguments())
 
