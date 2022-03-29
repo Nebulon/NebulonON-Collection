@@ -84,7 +84,12 @@ tasks:
 
 ## Changelog
 
-### 1.1.0 - 02/04/2022
+### 1.1.1
+
+* Fixed an issue where module `neb_snapshot_template` can properly set arguments (true/false) for the parameter
+`ignore_boot_volumes`
+
+### 1.1.0
 
 * Added module `neb_host_info` that returns detailed information for host
 * Added module `neb_ntp` that allows configuring SPU NTP server information

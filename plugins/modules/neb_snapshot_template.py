@@ -358,7 +358,7 @@ def create_snapshot_template(module, client):
         snapshot_schedule_template=None
     )
     ignore_boot_volume = True
-    if module.params['include_boot_volume'] == 'yes':
+    if module.params['include_boot_volume']:
         ignore_boot_volume = False
     try:
         new_snapshot_template = client.create_snapshot_schedule_template(
