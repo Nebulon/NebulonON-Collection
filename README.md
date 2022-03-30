@@ -82,7 +82,15 @@ tasks:
   nebulon.nebulon_on.neb_volume_info:
 ```
 
+### Tutorial
+For more detail information and how to use Nebulon Ansible Collection please refer to 
+our tutorial page at [Nebulon Ansible Tutorial](https://on.nebulon.com/docs/en-us/tutorials/tutorial-ansible/8041667baadd168c8333f3aa991637c1)
+
 ## Changelog
+
+### 1.1.2
+
+* Added compatibility check for Nebulon SDK and Python to `login_utils`
 
 ### 1.1.1
 
