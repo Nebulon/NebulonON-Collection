@@ -74,11 +74,25 @@ RETURN = r"""
 
 from ansible_collections.nebulon.nebulon_on.plugins.module_utils.login_utils import get_client, get_login_arguments
 from ansible.module_utils.basic import AnsibleModule
+from nebpyclient import SpuFilter, StringFilter, UUIDFilter, NPodFilter
 
 
 def update_spu(module, client, spu_serial, package_name, force):
     # type: (AnsibleModule, NebPyClient, str, str, bool) -> dict
     """Update SPU firmware"""
+    spu_list = client.get_spus(
+        spu_filter=SpuFilter(
+            serial=StringFilter(
+                equals=spu_serial
+            ),
+        )
+    )
+    if spu_list.filtered_count == 0:
+        module.fail_json(msg="SPU does not exist")
+        return
+    if package_name in spu_list.items[0].version:
+        return dict(changed=False)
+
     try:
         client.update_spu_firmware(
             spu_serial=spu_serial,
@@ -93,6 +107,38 @@ def update_spu(module, client, spu_serial, package_name, force):
 def update_npod(module, client, npod_uuid, package_name, ignore_warning):
     # type: (AnsibleModule, NebPyClient, str, str, bool) -> dict
     """Update nPod"""
+
+    npod_list = client.get_npods(
+        npod_filter=NPodFilter(
+            uuid=UUIDFilter(
+                equals=npod_uuid
+            )
+        )
+    )
+
+    if npod_list.filtered_count == 0:
+        module.fail_json(msg="nPod does not exist")
+        return
+
+    if len(npod_list.items[0].spu_serials) == 0:
+        module.fail_json(msg="No SPU in the nPod")
+        return
+
+    spu_list = client.get_spus(
+        spu_filter=SpuFilter(
+            serial=StringFilter(
+                equals=npod_list.items[0].spu_serials[0]
+            ),
+        )
+    )
+
+    if spu_list.filtered_count == 0:
+        module.fail_json(msg="SPU does not exist")
+        return
+
+    if package_name in spu_list.items[0].version:
+        return dict(changed=False)
+
     try:
         client.update_npod_firmware(
             npod_uuid=npod_uuid,

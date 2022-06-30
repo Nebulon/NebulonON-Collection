@@ -54,6 +54,19 @@ options:
     type: bool
     required: false
     default: false
+  sync_state:
+    description: Filter based on volume synchronization status
+    type: str
+    choices:
+      - InSync
+      - NotMirrored
+      - Syncing
+      - Unknown
+      - Unsynced
+      - All
+    required: false
+    default: All
+
 extends_documentation_fragment:
   - nebulon.nebulon_on.login_util_options
 """
@@ -160,12 +173,13 @@ volume:
       type: list
       elements: str
       returned: always
+
 """
 
 from ansible_collections.nebulon.nebulon_on.plugins.module_utils.class_utils import to_dict
 from ansible_collections.nebulon.nebulon_on.plugins.module_utils.login_utils import get_client, get_login_arguments
 from ansible.module_utils.basic import AnsibleModule
-from nebpyclient import VolumeFilter, StringFilter, UuidFilter, PageInput
+from nebpyclient import VolumeFilter, StringFilter, UUIDFilter, PageInput, VolumeSyncState, LUNFilter
 
 
 def get_volumes(module, client):
@@ -173,6 +187,9 @@ def get_volumes(module, client):
     """Get the nPod volumes that matche the specified filter options"""
     volume_info_list = []
     page_number = 1
+    sync_state = None
+    if module.params['sync_state'] != 'All':
+        sync_state = VolumeSyncState(module.params['sync_state'])
     while True:
         volume_list = client.get_volumes(
             page=PageInput(page=page_number),
@@ -181,7 +198,7 @@ def get_volumes(module, client):
                     equals=module.params['volume_name']
                 ),
                 and_filter=VolumeFilter(
-                    uuid=UuidFilter(
+                    uuid=UUIDFilter(
                         equals=module.params['volume_uuid']
                     ),
                     and_filter=VolumeFilter(
@@ -189,21 +206,23 @@ def get_volumes(module, client):
                             equals=module.params['volume_wwn']
                         ),
                         and_filter=VolumeFilter(
-                            npod_uuid=UuidFilter(
+                            npod_uuid=UUIDFilter(
                                 equals=module.params['npod_uuid']
                             ),
                             and_filter=VolumeFilter(
-                                parent_uuid=UuidFilter(
+                                parent_uuid=UUIDFilter(
                                     equals=module.params['parent_volume_uuid']
                                 ),
                                 and_filter=VolumeFilter(
-                                    base_only=module.params['base_only']
+                                    base_only=module.params['base_only'],
+                                    and_filter=VolumeFilter(
+                                        sync_state=sync_state
+                                    )
                                 )
                             )
                         )
                     )
                 )
-
             )
         )
         for i in range(len(volume_list.items)):
@@ -211,6 +230,36 @@ def get_volumes(module, client):
         if not volume_list.more:
             break
         page_number += 1
+
+    for i in range(len(volume_info_list)):
+        lun_uuids = []
+        lun_list = client.get_luns(
+            lun_filter=LUNFilter(
+                volume_uuid=UUIDFilter(
+                    equals=volume_info_list[i]['uuid']
+                )
+            )
+        )
+        for j in range(len(lun_list.items)):
+            lun_uuids.append(lun_list.items[j].uuid)
+        volume_info_list[i]["lun_uuids"] = lun_uuids
+
+    for i in range(len(volume_info_list)):
+        snapshot_uuids = []
+        snapshot_list = client.get_volumes(
+            volume_filter=VolumeFilter(
+                parent_uuid=UUIDFilter(
+                    equals=volume_info_list[i]['uuid']
+                ),
+                and_filter=VolumeFilter(
+                    snapshots_only=True
+                ),
+            )
+        )
+        for j in range(len(snapshot_list.items)):
+            snapshot_uuids.append(snapshot_list.items[j].uuid)
+        volume_info_list[i]["snapshot_uuids"] = snapshot_uuids
+
     return volume_info_list
 
 
@@ -222,6 +271,8 @@ def main():
         volume_wwn=dict(required=False, type='str'),
         parent_volume_uuid=dict(required=False, type='str'),
         base_only=dict(required=False, type='bool', default=False),
+        sync_state=dict(required=False, type='str', choices=['InSync', 'NotMirrored', 'Syncing', 'Unknown', 'Unsynced',
+                                                             'All'], default='All'),
     )
     module_args.update(get_login_arguments())
 

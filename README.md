@@ -7,7 +7,7 @@ smartInfrastructure and cloud services.
 - Ansible-core 2.10 or higher
 - Python 3.6 or higher
 - Internet connectivity to https://ucapi.nebcloud.nebuloninc.com/ from host where Ansible is executed
-- Nebulon Python SDK 1.0.15
+- Nebulon Python SDK 2.0.8
 
 ## Available modules
 - neb_claim_spu - To claim or release a SPU
@@ -87,6 +87,31 @@ For more detail information and how to use Nebulon Ansible Collection please ref
 our tutorial page at [Nebulon Ansible Tutorial](https://on.nebulon.com/docs/en-us/tutorials/tutorial-ansible/8041667baadd168c8333f3aa991637c1)
 
 ## Changelog
+
+### 1.2.0
+
+Moved Nebulon Ansible collection from Nebulon Python SDK 1.0.15 to 2.0.8
+
+* Added Three more optional filters to module `neb_npod_template_info` for looking up nPod templates.
+    - `os` - string type filter based on nPod template operating system name
+    - `app` - string type filter based on nPod template application name
+    - `only_last_version` - boolean type filter based on their latest version 
+* Added two more optional inputs to module `neb_user` for adding, deleting and modifying Nebulon users
+    - `time_zone` - string type filter based on user's time zone
+    - `send_notification` - string type filter based on the user's notification preferences for alerts
+       - Choices: 
+            - `Daily`
+            - `Disabled`
+            - `Instant`
+* Added optional filters to module `neb_volume_info` for looking up nPod volumes
+    - `sync_state` - string type filter based on volume synchronization status
+       - Choices: 
+            - `InSync`
+            - `NotMirrored`
+            - `Syncing`
+            - `Unknown`
+            - `Unsynced`
+            - `All`
 
 ### 1.1.2
 

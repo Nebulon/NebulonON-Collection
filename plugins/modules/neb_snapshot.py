@@ -96,7 +96,7 @@ RETURN = r"""
 
 from ansible_collections.nebulon.nebulon_on.plugins.module_utils.login_utils import get_client, get_login_arguments
 from ansible.module_utils.basic import AnsibleModule
-from nebpyclient import Volume, VolumeFilter, UuidFilter
+from nebpyclient import Volume, VolumeFilter, UUIDFilter
 
 
 def get_snapshot(module, client, snapshot_uuid):
@@ -104,7 +104,7 @@ def get_snapshot(module, client, snapshot_uuid):
     """Get the volume snapshot that matches the specified UUID"""
     snapshot_list = client.get_volumes(
         volume_filter=VolumeFilter(
-            uuid=UuidFilter(
+            uuid=UUIDFilter(
                 equals=snapshot_uuid
             )
         )

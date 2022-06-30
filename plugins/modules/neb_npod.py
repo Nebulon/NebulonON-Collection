@@ -272,7 +272,7 @@ npod:
 from ansible_collections.nebulon.nebulon_on.plugins.module_utils.class_utils import to_dict
 from ansible_collections.nebulon.nebulon_on.plugins.module_utils.login_utils import get_client, get_login_arguments
 from ansible.module_utils.basic import AnsibleModule
-from nebpyclient import NPod, NPodFilter, StringFilter, NPodSpuInput, IPInfoConfigInput
+from nebpyclient import NPod, NPodFilter, StringFilter, NPodSpuInput, IPInfoConfigInput, CreateNPodInput
 
 
 def get_ip_info_list(ip_info_config_list):
@@ -355,13 +355,15 @@ def create_npod(module, client):
     )
     try:
         new_npod = client.create_npod(
-            name=module.params['name'],
-            npod_group_uuid=module.params['npod_group_uuid'],
-            spus=get_spu_list(module),
-            npod_template_uuid=module.params['npod_template_uuid'],
-            note=module.params['note'],
-            timezone=module.params['timezone'],
-            ignore_warnings=module.params['ignore_warnings'],
+            create_npod_input=CreateNPodInput(
+                name=module.params['name'],
+                npod_group_uuid=module.params['npod_group_uuid'],
+                spus=get_spu_list(module),
+                npod_template_uuid=module.params['npod_template_uuid'],
+                note=module.params['note'],
+                timezone=module.params['timezone']
+            ),
+            ignore_warnings=module.params['ignore_warnings']
         )
     except Exception as err:
         module.fail_json(msg=str(err))

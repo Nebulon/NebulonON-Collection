@@ -203,7 +203,7 @@ npod_template:
 from ansible_collections.nebulon.nebulon_on.plugins.module_utils.class_utils import to_dict
 from ansible_collections.nebulon.nebulon_on.plugins.module_utils.login_utils import get_client, get_login_arguments
 from ansible.module_utils.basic import AnsibleModule
-from nebpyclient import NPodTemplateFilter, NPodTemplate, StringFilter
+from nebpyclient import NPodTemplateFilter, NPodTemplate, StringFilter, CreateNPodTemplateInput, UpdateNPodTemplateInput
 
 
 def get_npod_template(client, name):
@@ -250,19 +250,21 @@ def create_npod_template(module, client):
     )
     try:
         new_npod_template = client.create_npod_template(
-            name=module.params['name'],
-            saving_factor=module.params['saving_factor'],
-            mirrored_volume=module.params['mirrored_volume'],
-            boot_volume=module.params['boot_volume'],
-            os=module.params['os'],
-            volume_size_bytes=module.params['volume_size_bytes'],
-            shared_volume=module.params['shared_volume'],
-            boot_volume_size_bytes=module.params['boot_volume_size_bytes'],
-            boot_image_url=module.params['boot_image_url'],
-            app=module.params['app'],
-            note=module.params['note'],
-            snapshot_schedule_template_uuids=module.params['snapshot_schedule_template_uuids'],
-            volume_count=module.params['volume_count']
+            create_npod_template_input=CreateNPodTemplateInput(
+                name=module.params['name'],
+                saving_factor=module.params['saving_factor'],
+                mirrored_volume=module.params['mirrored_volume'],
+                boot_volume=module.params['boot_volume'],
+                os=module.params['os'],
+                volume_size_bytes=module.params['volume_size_bytes'],
+                shared_lun=module.params['shared_volume'],
+                boot_volume_size_bytes=module.params['boot_volume_size_bytes'],
+                boot_image_url=module.params['boot_image_url'],
+                app=module.params['app'],
+                note=module.params['note'],
+                snapshot_schedule_template_uuids=module.params['snapshot_schedule_template_uuids'],
+                volume_count=module.params['volume_count'],
+            )
         )
     except Exception as err:
         module.fail_json(msg=str(err))
@@ -293,19 +295,21 @@ def modify_npod_template(module, client, npod_template):
     if should_update:
         try:
             modified_npod_template = client.update_npod_template(
-                name=module.params['name'],
-                saving_factor=module.params['saving_factor'],
-                mirrored_volume=module.params['mirrored_volume'],
-                boot_volume=module.params['boot_volume'],
-                os=module.params['os'],
-                volume_size_bytes=module.params['volume_size_bytes'],
-                shared_volume=module.params['shared_volume'],
-                boot_volume_size_bytes=module.params['boot_volume_size_bytes'],
-                boot_image_url=module.params['boot_image_url'],
-                app=module.params['app'],
-                note=module.params['note'],
-                snapshot_schedule_template_uuids=module.params['snapshot_schedule_template_uuids'],
-                volume_count=module.params['volume_count']
+                update_npod_template_input=UpdateNPodTemplateInput(
+                    name=module.params['name'],
+                    saving_factor=module.params['saving_factor'],
+                    mirrored_volume=module.params['mirrored_volume'],
+                    boot_volume=module.params['boot_volume'],
+                    os=module.params['os'],
+                    volume_size_bytes=module.params['volume_size_bytes'],
+                    shared_lun=module.params['shared_volume'],
+                    boot_volume_size_bytes=module.params['boot_volume_size_bytes'],
+                    boot_image_url=module.params['boot_image_url'],
+                    app=module.params['app'],
+                    note=module.params['note'],
+                    snapshot_schedule_template_uuids=module.params['snapshot_schedule_template_uuids'],
+                    volume_count=module.params['volume_count']
+                )
             )
         except Exception as err:
             module.fail_json(msg=str(err))

@@ -146,7 +146,7 @@ users:
 from ansible_collections.nebulon.nebulon_on.plugins.module_utils.class_utils import to_dict
 from ansible_collections.nebulon.nebulon_on.plugins.module_utils.login_utils import get_client, get_login_arguments
 from ansible.module_utils.basic import AnsibleModule
-from nebpyclient import UserFilter, UuidFilter, StringFilter, PageInput
+from nebpyclient import UserFilter, UUIDFilter, StringFilter, PageInput
 
 
 def get_users(client, name, uuid):
@@ -161,7 +161,7 @@ def get_users(client, name, uuid):
                     equals=name
                 ),
                 and_filter=UserFilter(
-                    uuid=UuidFilter(
+                    uuid=UUIDFilter(
                         equals=uuid
                     )
                 )

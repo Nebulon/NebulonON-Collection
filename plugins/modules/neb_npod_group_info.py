@@ -100,7 +100,7 @@ npod_groups:
 from ansible_collections.nebulon.nebulon_on.plugins.module_utils.class_utils import to_dict
 from ansible_collections.nebulon.nebulon_on.plugins.module_utils.login_utils import get_client, get_login_arguments
 from ansible.module_utils.basic import AnsibleModule
-from nebpyclient import NPodGroupFilter, UuidFilter, StringFilter, PageInput
+from nebpyclient import NPodGroupFilter, UUIDFilter, StringFilter, PageInput
 
 
 def get_npod_groups(client, name, uuid):
@@ -115,7 +115,7 @@ def get_npod_groups(client, name, uuid):
                     equals=name
                 ),
                 and_filter=NPodGroupFilter(
-                    uuid=UuidFilter(
+                    uuid=UUIDFilter(
                         equals=uuid
                     )
                 )

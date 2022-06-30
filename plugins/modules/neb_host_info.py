@@ -171,7 +171,7 @@ hosts:
 from ansible_collections.nebulon.nebulon_on.plugins.module_utils.class_utils import to_dict
 from ansible_collections.nebulon.nebulon_on.plugins.module_utils.login_utils import get_client, get_login_arguments
 from ansible.module_utils.basic import AnsibleModule
-from nebpyclient import HostFilter, StringFilter, PageInput
+from nebpyclient import HostFilter, StringFilter, PageInput, UUIDFilter
 
 
 def get_host_info_list(module, client):
@@ -182,7 +182,7 @@ def get_host_info_list(module, client):
     while True:
         host_list = client.get_hosts(
             page=PageInput(page=page_number),
-            h_filter=HostFilter(
+            host_filter=HostFilter(
                 uuid=StringFilter(
                     equals=module.params['host_uuid']
                 ),

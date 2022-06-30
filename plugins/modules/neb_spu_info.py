@@ -35,7 +35,7 @@ options:
     elements: str
     required: true
   not_in_npod:
-    description: Determines if returns SPUs that are allocated to a nPod
+    description: Filter by SPUs that are not in a nPod
     type: bool
     required: false
 extends_documentation_fragment:
@@ -320,7 +320,7 @@ spus:
 from ansible_collections.nebulon.nebulon_on.plugins.module_utils.class_utils import to_dict
 from ansible_collections.nebulon.nebulon_on.plugins.module_utils.login_utils import get_client, get_login_arguments
 from ansible.module_utils.basic import AnsibleModule
-from nebpyclient import SpuFilter, StringFilter, PageInput
+from nebpyclient import SpuFilter, StringFilter, PageInput, UUIDFilter
 
 
 def get_spu_info_list(module, client):
@@ -336,7 +336,7 @@ def get_spu_info_list(module, client):
                     in_list=module.params['spu_serials']
                 ),
                 and_filter=SpuFilter(
-                    not_in_npod=module.params['not_in_npod'],
+                    not_in_npod=module.params['not_in_npod']
                 )
             )
         )
@@ -352,7 +352,7 @@ def get_spu_info_list(module, client):
 def main():
     module_args = dict(
         spu_serials=dict(required=True, type='list', elements='str'),
-        not_in_npod=dict(required=False, type='bool', default=None)
+        not_in_npod=dict(required=False, type='bool', default=None),
     )
     module_args.update(get_login_arguments())
 

@@ -287,6 +287,7 @@ from ansible.module_utils.basic import AnsibleModule
 from ansible_collections.nebulon.nebulon_on.plugins.module_utils.login_utils import get_client, get_login_arguments
 from ansible_collections.nebulon.nebulon_on.plugins.module_utils.class_utils import to_dict
 from nebpyclient import SnapshotScheduleTemplate, SnapshotScheduleTemplateFilter, ScheduleInput, StringFilter
+from nebpyclient import CreateSnapshotScheduleTemplateInput, UpdateSnapshotScheduleTemplateInput
 
 
 def seconds_as_dict(seconds):
@@ -362,22 +363,28 @@ def create_snapshot_template(module, client):
         ignore_boot_volume = False
     try:
         new_snapshot_template = client.create_snapshot_schedule_template(
-            name=module.params['name'],
-            name_pattern=module.params['snapshot_name_pattern'],
-            schedule=ScheduleInput(
-                minute=module.params['schedule_period']['minutes'],
-                hour=module.params['schedule_period']['hours'],
-                day_of_week=module.params['schedule_period']['days_of_week'],
-                day_of_month=module.params['schedule_period']['days_of_month'],
-                month=module.params['schedule_period']['months']
-            ),
-            expiration_seconds=get_seconds(module.params['expiration_time']['weeks'],
-                                           module.params['expiration_time']['days'],
-                                           module.params['expiration_time']['hours']),
-            retention_seconds=get_seconds(module.params['retention_time']['weeks'],
-                                          module.params['retention_time']['days'],
-                                          module.params['retention_time']['hours']),
-            ignore_boot_volumes=ignore_boot_volume
+            create_template_input=CreateSnapshotScheduleTemplateInput(
+                name=module.params['name'],
+                name_pattern=module.params['snapshot_name_pattern'],
+                schedule=ScheduleInput(
+                    minute=module.params['schedule_period']['minutes'],
+                    hour=module.params['schedule_period']['hours'],
+                    day_of_week=module.params['schedule_period']['days_of_week'],
+                    day_of_month=module.params['schedule_period']['days_of_month'],
+                    month=module.params['schedule_period']['months']
+                ),
+                expiration_seconds=get_seconds(
+                    module.params['expiration_time']['weeks'],
+                    module.params['expiration_time']['days'],
+                    module.params['expiration_time']['hours']
+                ),
+                retention_seconds=get_seconds(
+                    module.params['retention_time']['weeks'],
+                    module.params['retention_time']['days'],
+                    module.params['retention_time']['hours']
+                ),
+                ignore_boot_volumes=ignore_boot_volume
+            )
         )
     except Exception as err:
         module.fail_json(msg=str(err))
@@ -428,21 +435,27 @@ def modify_snapshot_template(module, client, schedule_template):
         try:
             modified_snapshot_template = client.update_snapshot_schedule_template(
                 uuid=schedule_template.uuid,
-                name=module.params['name'],
-                name_pattern=module.params['snapshot_name_pattern'],
-                schedule=ScheduleInput(
-                    minute=module.params['schedule_period']['minutes'],
-                    hour=module.params['schedule_period']['hours'],
-                    day_of_week=module.params['schedule_period']['days_of_week'],
-                    day_of_month=module.params['schedule_period']['days_of_month'],
-                    month=module.params['schedule_period']['months']
-                ),
-                expiration_seconds=get_seconds(module.params['expiration_time']['weeks'],
-                                               module.params['expiration_time']['days'],
-                                               module.params['expiration_time']['hours']),
-                retention_seconds=get_seconds(module.params['retention_time']['weeks'],
-                                              module.params['retention_time']['days'],
-                                              module.params['retention_time']['hours']),
+                update_template_input=UpdateSnapshotScheduleTemplateInput(
+                    name=module.params['name'],
+                    name_pattern=module.params['snapshot_name_pattern'],
+                    schedule=ScheduleInput(
+                        minute=module.params['schedule_period']['minutes'],
+                        hour=module.params['schedule_period']['hours'],
+                        day_of_week=module.params['schedule_period']['days_of_week'],
+                        day_of_month=module.params['schedule_period']['days_of_month'],
+                        month=module.params['schedule_period']['months']
+                    ),
+                    expiration_seconds=get_seconds(
+                        module.params['expiration_time']['weeks'],
+                        module.params['expiration_time']['days'],
+                        module.params['expiration_time']['hours']
+                    ),
+                    retention_seconds=get_seconds(
+                        module.params['retention_time']['weeks'],
+                        module.params['retention_time']['days'],
+                        module.params['retention_time']['hours']
+                    ),
+                )
             )
         except Exception as err:
             module.fail_json(msg=str(err))

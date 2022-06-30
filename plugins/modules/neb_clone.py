@@ -73,7 +73,7 @@ RETURN = r"""
 
 from ansible_collections.nebulon.nebulon_on.plugins.module_utils.login_utils import get_client, get_login_arguments
 from ansible.module_utils.basic import AnsibleModule
-from nebpyclient import Volume, VolumeFilter, StringFilter, UuidFilter
+from nebpyclient import Volume, VolumeFilter, StringFilter, UUIDFilter, CreateCloneInput
 
 
 def get_clone(module, client, clone_name, parent_volume_uuid):
@@ -81,7 +81,7 @@ def get_clone(module, client, clone_name, parent_volume_uuid):
     """Get the volume clone that matches the specified name and parent volume UUID"""
     volume_list = client.get_volumes(
         volume_filter=VolumeFilter(
-            uuid=UuidFilter(
+            uuid=UUIDFilter(
                 equals=parent_volume_uuid
             )
         )
@@ -101,7 +101,7 @@ def get_clone(module, client, clone_name, parent_volume_uuid):
                 equals=clone_name
             ),
             and_filter=VolumeFilter(
-                npod_uuid=UuidFilter(
+                npod_uuid=UUIDFilter(
                     equals=parent_volume.npod_uuid
                 )
             )
@@ -137,8 +137,10 @@ def create_clone(module, client):
     )
     try:
         client.create_clone(
-            name=module.params['name'],
-            volume_uuid=module.params['volume_uuid']
+            create_clone_input=CreateCloneInput(
+                name=module.params['name'],
+                volume_uuid=module.params['volume_uuid']
+            )
         )
     except Exception as err:
         module.fail_json(msg=str(err))

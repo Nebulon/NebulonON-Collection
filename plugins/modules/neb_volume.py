@@ -194,7 +194,7 @@ volume:
 from ansible_collections.nebulon.nebulon_on.plugins.module_utils.class_utils import to_dict
 from ansible_collections.nebulon.nebulon_on.plugins.module_utils.login_utils import get_client, get_login_arguments
 from ansible.module_utils.basic import AnsibleModule
-from nebpyclient import Volume, VolumeFilter, StringFilter, UuidFilter
+from nebpyclient import Volume, VolumeFilter, StringFilter, UUIDFilter, CreateVolumeInput
 
 
 def get_volume(module, client, volume_name, npod_uuid):
@@ -206,7 +206,7 @@ def get_volume(module, client, volume_name, npod_uuid):
                 equals=volume_name
             ),
             and_filter=VolumeFilter(
-                npod_uuid=UuidFilter(
+                npod_uuid=UUIDFilter(
                     equals=npod_uuid
                 )
             )
@@ -244,13 +244,15 @@ def create_volume(module, client):
     )
     try:
         new_volume = client.create_volume(
-            name=module.params['name'],
-            size_bytes=module.params['size'],
-            npod_uuid=module.params['npod_uuid'],
-            mirrored=module.params['mirrored'],
-            owner_spu_serial=module.params['owner_spu_serial'],
-            backup_spu_serial=module.params['backup_spu_serial'],
-            force=module.params['force'],
+            create_volume_input=CreateVolumeInput(
+                name=module.params['name'],
+                size_bytes=module.params['size'],
+                npod_uuid=module.params['npod_uuid'],
+                mirrored=module.params['mirrored'],
+                owner_spu_serial=module.params['owner_spu_serial'],
+                backup_spu_serial=module.params['backup_spu_serial'],
+                force=module.params['force'],
+            )
         )
     except Exception as err:
         module.fail_json(msg=str(err))

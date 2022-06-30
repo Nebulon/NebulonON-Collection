@@ -96,7 +96,7 @@ user_groups:
 from ansible_collections.nebulon.nebulon_on.plugins.module_utils.class_utils import to_dict
 from ansible_collections.nebulon.nebulon_on.plugins.module_utils.login_utils import get_client, get_login_arguments
 from ansible.module_utils.basic import AnsibleModule
-from nebpyclient import UserGroupFilter, UuidFilter, StringFilter, PageInput
+from nebpyclient import UserGroupFilter, UUIDFilter, StringFilter, PageInput
 
 
 def get_user_groups(client, name, uuid):
@@ -106,12 +106,12 @@ def get_user_groups(client, name, uuid):
     while True:
         user_group_list = client.get_user_groups(
             page=PageInput(page=page_number),
-            ug_filter=UserGroupFilter(
+            user_group_filter=UserGroupFilter(
                 name=StringFilter(
                     equals=name
                 ),
                 and_filter=UserGroupFilter(
-                    uuid=UuidFilter(
+                    uuid=UUIDFilter(
                         equals=uuid
                     )
                 )

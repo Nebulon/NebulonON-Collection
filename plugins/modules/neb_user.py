@@ -76,6 +76,19 @@ options:
     type: list
     elements: str
     required: false
+  time_zone:
+    description: The user's time zone
+    type: str
+    required: false
+  send_notification:
+    description: The user's notification preferences for alerts
+    type: str
+    choices:
+      - Daily
+      - Disabled
+      - Instant
+    default: Disabled
+    required: false
   state:
     description:
       - Defines the intended state for the user
@@ -208,7 +221,7 @@ user:
 from ansible_collections.nebulon.nebulon_on.plugins.module_utils.class_utils import to_dict
 from ansible_collections.nebulon.nebulon_on.plugins.module_utils.login_utils import get_client, get_login_arguments
 from ansible.module_utils.basic import AnsibleModule
-from nebpyclient import UserFilter, StringFilter, UserGroupFilter, User, UserGroup
+from nebpyclient import UserFilter, StringFilter, UserGroupFilter, User, UserGroup, CreateUserInput, UpdateUserInput, SendNotificationType
 
 
 def get_user(module, client, user_name):
@@ -234,7 +247,7 @@ def get_user_group(module, client, group_name):
     # type: (AnsibleModule, NebPyClient, str) -> UserGroup
     """Get the user group that matches the specified user group name"""
     user_group_list = client.get_user_groups(
-        ug_filter=UserGroupFilter(
+        user_group_filter=UserGroupFilter(
             name=StringFilter(
                 equals=group_name
             )
@@ -271,17 +284,21 @@ def add_user(module, client, result):
         )
     try:
         new_user = client.create_user(
-            name=module.params['username'],
-            password=module.params['password'],
-            email=module.params['email'],
-            user_group_uuid=new_user_group.uuid,
-            first_name=module.params['first_name'],
-            last_name=module.params['last_name'],
-            note=module.params['note'],
-            mobile_phone=module.params['mobile_phone'],
-            business_phone=module.params['business_phone'],
-            inactive=module.params['inactive'],
-            policy_uuids=module.params['policy_uuids']
+            create_user_input=CreateUserInput(
+                name=module.params['username'],
+                password=module.params['password'],
+                email=module.params['email'],
+                user_group_uuid=new_user_group.uuid,
+                first_name=module.params['first_name'],
+                last_name=module.params['last_name'],
+                note=module.params['note'],
+                mobile_phone=module.params['mobile_phone'],
+                business_phone=module.params['business_phone'],
+                inactive=module.params['inactive'],
+                policy_uuids=module.params['policy_uuids'],
+                send_notification=SendNotificationType(module.params['send_notification']),
+                time_zone=module.params['time_zone']
+            )
         )
     except Exception as err:
         module.fail_json(msg=str(err))
@@ -328,17 +345,21 @@ def modify_user(module, client, user, result):
         try:
             modified_user = client.update_user(
                 uuid=user.uuid,
-                name=module.params['username'],
-                password=module.params['password'],
-                email=module.params['email'],
-                user_group_uuids=user_group_uuids,
-                first_name=module.params['first_name'],
-                last_name=module.params['last_name'],
-                note=module.params['note'],
-                mobile_phone=module.params['mobile_phone'],
-                business_phone=module.params['business_phone'],
-                inactive=module.params['inactive'],
-                policy_uuids=module.params['policy_uuids']
+                update_user_input=UpdateUserInput(
+                    name=module.params['username'],
+                    password=module.params['password'],
+                    email=module.params['email'],
+                    user_group_uuids=user_group_uuids,
+                    first_name=module.params['first_name'],
+                    last_name=module.params['last_name'],
+                    note=module.params['note'],
+                    mobile_phone=module.params['mobile_phone'],
+                    business_phone=module.params['business_phone'],
+                    inactive=module.params['inactive'],
+                    policy_uuids=module.params['policy_uuids'],
+                    send_notification=SendNotificationType(module.params['send_notification']),
+                    time_zone=module.params['time_zone']
+                )
             )
         except Exception as err:
             module.fail_json(msg=str(err))
@@ -363,6 +384,8 @@ def main():
         business_phone=dict(required=False, type='str'),
         inactive=dict(required=False, type='bool'),
         policy_uuids=dict(required=False, type='list', elements='str'),
+        send_notification=dict(required=False, type='str', choices=['Daily', 'Disabled', 'Instant'], default='Disabled'),
+        time_zone=dict(required=False, type='str'),
         state=dict(required=True, choices=['present', 'absent'])
     )
     module_args.update(get_login_arguments())

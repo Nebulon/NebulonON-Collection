@@ -141,7 +141,7 @@ npods:
 from ansible_collections.nebulon.nebulon_on.plugins.module_utils.class_utils import to_dict
 from ansible_collections.nebulon.nebulon_on.plugins.module_utils.login_utils import get_client, get_login_arguments
 from ansible.module_utils.basic import AnsibleModule
-from nebpyclient import NPodFilter, StringFilter, UuidFilter
+from nebpyclient import NPodFilter, StringFilter, UUIDFilter
 
 
 def get_npod_list(module, client):
@@ -156,7 +156,7 @@ def get_npod_list(module, client):
                     equals=module.params['name']
                 ),
                 and_filter=NPodFilter(
-                    uuid=UuidFilter(
+                    uuid=UUIDFilter(
                         equals=module.params['uuid']
                     )
                 )

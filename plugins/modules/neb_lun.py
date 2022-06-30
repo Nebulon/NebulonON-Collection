@@ -114,7 +114,7 @@ RETURN = r"""
 
 from ansible_collections.nebulon.nebulon_on.plugins.module_utils.login_utils import get_client, get_login_arguments
 from ansible.module_utils.basic import AnsibleModule
-from nebpyclient import VolumeFilter, UuidFilter, HostFilter, LunFilter, StringFilter
+from nebpyclient import VolumeFilter, UUIDFilter, HostFilter, LUNFilter, StringFilter, CreateLUNInput
 
 
 def delete_luns(module, client) -> dict:
@@ -129,57 +129,22 @@ def delete_luns(module, client) -> dict:
     host_uuids = module.params['host_uuids']
     lun_uuids = module.params['lun_uuids']
 
-    # get the specified volume
-    volume_list = client.get_volumes(
-        volume_filter=VolumeFilter(
-            uuid=UuidFilter(
-                equals=volume_uuid
+    lun_list = client.get_luns(
+        lun_filter=LUNFilter(
+            uuid=UUIDFilter(
+                in_filter=lun_uuids
             )
         )
     )
 
-    for volume in volume_list.items:
-
-        if len(volume_list.items[0].lun_uuids) == 0:
-            continue
-
-        lun_list = client.get_luns(
-            lun_filter=LunFilter(
-                uuid=UuidFilter(
-                    in_filter=volume_list.items[0].lun_uuids
-                )
-            )
-        )
-
-        host_list = client.get_hosts(
-            h_filter=HostFilter(
-                uuid=StringFilter(
-                    in_list=host_uuids
-                )
-            )
-        )
-
-        for host in host_list.items:
-            for spu_serial in host.spu_serials:
-                if spu_serial not in spu_serials:
-                    spu_serials.append(spu_serial)
-
-        for lun in lun_list.items:
-            if lun.spu_serial in spu_serials:
-                if lun.uuid not in lun_uuids:
-                    if lun_id is not None:
-                        if lun.lun_id == lun_id:
-                            lun_uuids.append(lun.uuid)
-                    else:
-                        lun_uuids.append(lun.uuid)
-
-    if len(lun_uuids) == 0:
+    if lun_list.filtered_count == 0:
+        result['changed'] = False
         return result
 
     try:
-        for lun_uuid in lun_uuids:
+        for lun in lun_list.items:
             client.delete_lun(
-                lun_uuid=lun_uuid
+                lun_uuid=lun.uuid
             )
     except Exception as err:
         module.fail_json(msg=str(err))
@@ -201,7 +166,7 @@ def create_luns(module, client):
 
     volume_list = client.get_volumes(
         volume_filter=VolumeFilter(
-            uuid=UuidFilter(
+            uuid=UUIDFilter(
                 equals=volume_uuid
             )
         )
@@ -215,7 +180,7 @@ def create_luns(module, client):
     # TODO: This will not work with 2 SPUs in one server
     if len(host_uuids) > 0:
         host_list = client.get_hosts(
-            h_filter=HostFilter(
+            host_filter=HostFilter(
                 uuid=StringFilter(
                     in_list=host_uuids
                 )
@@ -227,18 +192,17 @@ def create_luns(module, client):
                 if spu_serial not in spu_serials:
                     spu_serials.append(spu_serial)
 
-    if len(volume_list.items[0].lun_uuids) > 0:
-        lun_list = client.get_luns(
-            lun_filter=LunFilter(
-                uuid=UuidFilter(
-                    in_filter=volume_list.items[0].lun_uuids
-                )
+    lun_list = client.get_luns(
+        lun_filter=LUNFilter(
+            volume_uuid=UUIDFilter(
+                equals=volume_uuid
             )
         )
+    )
 
-        for lun in lun_list.items:
-            if lun.spu_serial in spu_serials:
-                spu_serials.remove(lun.spu_serial)
+    for lun in lun_list.items:
+        if lun.spu_serial in spu_serials:
+            spu_serials.remove(lun.spu_serial)
 
     # if spu_serials length is 0, all of the exports exist
     # TODO: they could exist with a different LUN ID, but it is unsafe to change
@@ -248,10 +212,13 @@ def create_luns(module, client):
 
     try:
         client.create_lun(
-            volume_uuid=volume_uuid,
-            lun_id=lun_id,
-            spu_serials=spu_serials,
-            local=module.params['local']
+            lun_input=CreateLUNInput(
+                volume_uuid=volume_uuid,
+                lun_id=lun_id,
+                spu_serials=spu_serials,
+                local=module.params['local'],
+                host_uuids=module.params['host_uuids']
+            )
         )
     except Exception as err:
         module.fail_json(msg=str(err))

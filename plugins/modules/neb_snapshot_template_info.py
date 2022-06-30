@@ -33,6 +33,10 @@ options:
     description: Filter based on snapshot schedule template name
     type: str
     required: false
+  uuid:
+    description: The unique identifier of the snapshot schedule template
+    type: str
+    required: false
 extends_documentation_fragment:
   - nebulon.nebulon_on.login_util_options
 """
@@ -124,10 +128,10 @@ snapshot_schedule_templates:
 from ansible_collections.nebulon.nebulon_on.plugins.module_utils.class_utils import to_dict
 from ansible_collections.nebulon.nebulon_on.plugins.module_utils.login_utils import get_client, get_login_arguments
 from ansible.module_utils.basic import AnsibleModule
-from nebpyclient import StringFilter, PageInput, SnapshotScheduleTemplateFilter
+from nebpyclient import StringFilter, PageInput, SnapshotScheduleTemplateFilter, UUIDFilter
 
 
-def get_snapshot_templates(client, name):
+def get_snapshot_templates(client, name, uuid):
     # type: (NebPyClient, str) -> list
     """Get snapshot schedule templates that matche the specified filter options"""
     template_info_list = []
@@ -152,6 +156,7 @@ def get_snapshot_templates(client, name):
 def main():
     module_args = dict(
         name=dict(required=False, type='str'),
+        uuid=dict(required=False, type='str'),
     )
     module_args.update(get_login_arguments())
 
@@ -168,7 +173,7 @@ def main():
 
     result['snapshot_schedule_templates'] = get_snapshot_templates(
         client,
-        module.params['name']
+        module.params['name'], module.params['uuid']
     )
 
     module.exit_json(**result)

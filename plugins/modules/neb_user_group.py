@@ -115,14 +115,14 @@ user_group:
 from ansible_collections.nebulon.nebulon_on.plugins.module_utils.class_utils import to_dict
 from ansible_collections.nebulon.nebulon_on.plugins.module_utils.login_utils import get_client, get_login_arguments
 from ansible.module_utils.basic import AnsibleModule
-from nebpyclient import UserGroup, UserGroupFilter, StringFilter
+from nebpyclient import UserGroup, UserGroupFilter, StringFilter, CreateUserGroupInput, UpdateUserGroupInput
 
 
 def get_user_group(module, client, group_name):
     # type: (AnsibleModule, NebPyClient, str) -> UserGroup
     """Get the user group that match the specified user group name"""
     user_group_list = client.get_user_groups(
-        ug_filter=UserGroupFilter(
+        user_group_filter=UserGroupFilter(
             name=StringFilter(
                 equals=group_name
             )
@@ -143,11 +143,10 @@ def delete_user_group(module, client, user_group_uuid):
         changed=False
     )
     try:
-        client.delete_user_group(user_group_uuid)
+        result['changed'] = client.delete_user_group(user_group_uuid)
     except Exception as err:
         module.fail_json(msg=str(err))
 
-    result['changed'] = True
     return result
 
 
@@ -159,9 +158,11 @@ def add_user_group(module, client):
     )
     try:
         new_user_group = client.create_user_group(
-            name=module.params['name'],
-            policy_uuids=module.params['policy_uuids'],
-            note=module.params['note']
+            create_user_group_input=CreateUserGroupInput(
+                name=module.params['name'],
+                policy_uuids=module.params['policy_uuids'],
+                note=module.params['note']
+            )
         )
     except Exception as err:
         module.fail_json(msg=str(err))
@@ -191,10 +192,11 @@ def modify_user_group(module, client, user_group):
     if should_update:
         try:
             modified_user_group = client.update_user_group(
-                uuid=user_group.uuid,
-                name=module.params['name'],
-                policy_uuids=module.params['policy_uuids'],
-                note=module.params['note'],
+                update_user_group_input=UpdateUserGroupInput(
+                    name=module.params['name'],
+                    policy_uuids=module.params['policy_uuids'],
+                    note=module.params['note'],
+                )
             )
         except Exception as err:
             module.fail_json(msg=str(err))
@@ -214,7 +216,7 @@ def main():
         name=dict(required=True, type='str'),
         policy_uuids=dict(required=False, type='list', elements='str'),
         note=dict(required=False, type='str'),
-        state=dict(required=True, choices=['present', 'absent'])
+        state=dict(required=True, choices=['present', 'absent']),
     )
     module_args.update(get_login_arguments())
 

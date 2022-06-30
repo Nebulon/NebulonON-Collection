@@ -35,10 +35,23 @@ options:
     required: false
   uuid:
     description: >-
-      Retrive a nPod template based on nPod template unique identifier. If
+      Retrieve a nPod template based on nPod template unique identifier. If
       provided all other input parameters will be ignored
     type: str
     required: false
+  os:
+    description: Filter based on nPod template operating system name
+    type: str
+    required: false
+  app:
+    description: Filter based on nPod template application name
+    type: str
+    required: false
+  only_last_version:
+    description: Filter nPod templates for only their latest version
+    type: bool
+    required: false
+    default: true
 extends_documentation_fragment:
   - nebulon.nebulon_on.login_util_options
 """
@@ -137,28 +150,41 @@ npod_templates:
 from ansible_collections.nebulon.nebulon_on.plugins.module_utils.class_utils import to_dict
 from ansible_collections.nebulon.nebulon_on.plugins.module_utils.login_utils import get_client, get_login_arguments
 from ansible.module_utils.basic import AnsibleModule
-from nebpyclient import NPodTemplateFilter, UuidFilter, StringFilter, PageInput
+from nebpyclient import NPodTemplateFilter, UUIDFilter, StringFilter, PageInput
 
 
-def get_npod_template_by_uuid(module, client, npod_template_uuid):
+def get_npod_template_by_uuid(module, client):
     # type: (AnsibleModule, NebPyClient, str) -> list[dict]
     """Get the nPod template that matches the specified UUID"""
     template_list = client.get_npod_templates(
         template_filter=NPodTemplateFilter(
-            uuid=UuidFilter(
-                equals=npod_template_uuid
+            uuid=UUIDFilter(
+                equals=module.params['uuid']
+            ),
+            and_filter=NPodTemplateFilter(
+                app=StringFilter(
+                    equals=module.params['app']
+                ),
+                and_filter=NPodTemplateFilter(
+                    os=StringFilter(
+                        equals=module.params['os']
+                    ),
+                    and_filter=NPodTemplateFilter(
+                        only_last_version=module.params['only_last_version'],
+                    )
+                )
             )
         )
     )
     if template_list.filtered_count > 1:
         module.fail_json(
-            msg=f"Found more than one nPod template with uuid {npod_template_uuid}."
+            msg=f"Found more than one nPod template with uuid {module.params['uuid']}."
         )
     elif template_list.filtered_count == 1:
         return [to_dict(template_list.items[0])]
 
 
-def get_npod_template(client, npod_template_name):
+def get_npod_template(module, client):
     # type: (NebPyClient, str, bool) -> list
     """Get the nPod template that matches the specified UUID"""
     templates = []
@@ -168,7 +194,20 @@ def get_npod_template(client, npod_template_name):
             page=PageInput(page=page_number),
             template_filter=NPodTemplateFilter(
                 name=StringFilter(
-                    equals=npod_template_name
+                    equals=module.params['name']
+                ),
+                and_filter=NPodTemplateFilter(
+                    app=StringFilter(
+                        equals=module.params['app']
+                    ),
+                    and_filter=NPodTemplateFilter(
+                        os=StringFilter(
+                            equals=module.params['os']
+                        ),
+                        and_filter=NPodTemplateFilter(
+                            only_last_version=module.params['only_last_version'],
+                        )
+                    )
                 )
             )
         )
@@ -185,6 +224,9 @@ def main():
     module_args = dict(
         name=dict(required=False, type='str'),
         uuid=dict(required=False, type='str'),
+        app=dict(required=False, type='str'),
+        os=dict(required=False, type='str'),
+        only_last_version=dict(required=False, type='bool', default=True),
     )
     module_args.update(get_login_arguments())
 
@@ -201,10 +243,10 @@ def main():
 
     if module.params['uuid'] is not None:
         result['npod_templates'] = get_npod_template_by_uuid(
-            module, client, module.params['uuid'])
+            module, client)
     else:
         result['npod_templates'] = get_npod_template(
-            client, module.params['name'])
+            module, client)
 
     module.exit_json(**result)
 

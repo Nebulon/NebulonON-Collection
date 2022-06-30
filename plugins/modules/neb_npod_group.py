@@ -116,7 +116,7 @@ npod_group:
 from ansible_collections.nebulon.nebulon_on.plugins.module_utils.class_utils import to_dict
 from ansible_collections.nebulon.nebulon_on.plugins.module_utils.login_utils import get_client, get_login_arguments
 from ansible.module_utils.basic import AnsibleModule
-from nebpyclient import NPodGroup, NPodGroupFilter, StringFilter
+from nebpyclient import NPodGroup, NPodGroupFilter, StringFilter, CreateNPodGroupInput, UpdateNPodGroupInput
 
 
 def get_npod_group(module, client, group_name):
@@ -160,8 +160,10 @@ def create_npod_group(module, client):
     )
     try:
         new_npod_group = client.create_npod_group(
-            name=module.params['name'],
-            note=module.params['note']
+            create_npod_group_input=CreateNPodGroupInput(
+                name=module.params['name'],
+                note=module.params['note']
+            )
         )
     except Exception as err:
         module.fail_json(msg=str(err))
@@ -192,8 +194,10 @@ def modify_npod_group(module, client, npod_group):
         try:
             modified_npod_group = client.update_npod_group(
                 uuid=npod_group.uuid,
-                name=module.params['name'],
-                note=module.params['note'],
+                update_npod_group_input=UpdateNPodGroupInput(
+                    name=module.params['name'],
+                    note=module.params['note'],
+                )
             )
         except Exception as err:
             module.fail_json(msg=str(err))
