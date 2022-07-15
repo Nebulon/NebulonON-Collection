@@ -1,8 +1,10 @@
 # Nebulon Collection
+
 The Nebulon Collection consists of modules to manage Nebulon
 smartInfrastructure and cloud services.
 
 ## Requirements
+
 - Ansible 3.0.0 or higher
 - Ansible-core 2.10 or higher
 - Python 3.6 or higher
@@ -10,6 +12,7 @@ smartInfrastructure and cloud services.
 - Nebulon Python SDK 2.0.8
 
 ## Available modules
+
 - neb_claim_spu - To claim or release a SPU
 - neb_clone - To create or delete a volume clone
 - neb_lun - To create or delete a LUN
@@ -33,22 +36,49 @@ smartInfrastructure and cloud services.
 - neb_host_info - To query information on hosts
 - neb_ntp - To set NTP server configuration
 
+### Support for module_defaults
+
+All modules in the Nebulon collections require you to specify a user name and password. These
+are provided through the `neb_username` and `neb_password` parameters in each module. To simplify
+authoring of playbooks, the module defines the action group `nebulon`, so that you can use the
+`module_defaults` functionality. For example:
+
+```yaml
+---
+- name: Example playbook
+  hosts: localhost
+  connection: local
+  module_defaults:
+    group/nebulon.nebulon_on.nebulon:
+      neb_username: your_username
+      neb_password: your_password
+
+  tasks:
+    - name: Step 1
+      nebulon.nebulon_on.neb_npod_group:
+        name: group_name
+        state: present
+```
 
 ## Getting started
+
 To use the Nebulon Ansible modules, install the collection from Ansible
 Galaxy or build and install from source code. The recommended installation procedure
 to use Ansible Galaxy
 
-### To Install Nebulon Python SDK:
+### To Install Nebulon Python SDK
+
 To install the Nebulon Python SDK use the following command:
 
-```
+```bash
 python3 -m pip install -r requirements.txt
 ```
+
 Refer to Nebulon [Python SDK installation](https://nebulon.github.io/nebpyclient/installation.html)
 page for more detail.
 
 ### Installation of Collections using Ansible Galaxy
+
 The easiest way to get started by use of ansible-galaxy. Use the following
 command to install the latest collection:
 
@@ -57,9 +87,10 @@ ansible-galaxy collection install nebulon.nebulon_on -p ~/.ansible/collections
 ```
 
 ### Building from source
-Use the following command to build the Nebulon Collection from source code. 
 
-```
+Use the following command to build the Nebulon Collection from source code.
+
+```bash
 git clone https://github.com/Nebulon/NebulonON-Collection.git
 cd neb-ansible/ansible_collections/nebulon/nebulon_on
 ansible-galaxy collection build
@@ -67,27 +98,35 @@ ansible-galaxy collection build
 
 Then Install the collection from this command:
 
-```
+```bash
 ansible-galaxy collection install nebulon-nebulon_on-{version number}.tar.gz
 ```
+
 To get the latest version number please refer to galaxy.yml in the source code
 
 ### Using collections in a Playbook
-Once installed, you can reference a collection content by its fully qualified 
+
+Once installed, you can reference a collection content by its fully qualified
 collection name (FQCN). FQCN for the Nebulon Ansible Collection is: nebulon.nebulon_on
 
-```
+```yaml
 tasks:
 - name: query volumes
   nebulon.nebulon_on.neb_volume_info:
 ```
 
 ### Tutorial
-For more detail information and how to use Nebulon Ansible Collection please refer to 
+
+For more detail information and how to use Nebulon Ansible Collection please refer to
 our tutorial page at [Nebulon Ansible Tutorial](https://on.nebulon.com/docs/en-us/tutorials/tutorial-ansible/8041667baadd168c8333f3aa991637c1)
 
 ## Changelog
 
+### 1.2.1
+
+- Added support for `module_defaults` using the action group `nebulon.nebulon_on.nebulon` to simplify providing
+  credentials to the modules provided by this collection
+  
 ### 1.2.0
 
 Moved Nebulon Ansible collection from Nebulon Python SDK 1.0.15 to 2.0.8
@@ -115,27 +154,29 @@ Moved Nebulon Ansible collection from Nebulon Python SDK 1.0.15 to 2.0.8
 
 ### 1.1.2
 
-* Added compatibility check for Nebulon SDK and Python to `login_utils`
+- Added compatibility check for Nebulon SDK and Python to `login_utils`
 
 ### 1.1.1
 
-* Fixed an issue where module `neb_snapshot_template` can properly set arguments (true/false) for the parameter
+- Fixed an issue where module `neb_snapshot_template` can properly set arguments (true/false) for the parameter
 `ignore_boot_volumes`
 
 ### 1.1.0
 
-* Added module `neb_host_info` that returns detailed information for host
-* Added module `neb_ntp` that allows configuring SPU NTP server information
-* Fixed an issue where module `neb_spu_info` would always default to 
+- Added module `neb_host_info` that returns detailed information for host
+- Added module `neb_ntp` that allows configuring SPU NTP server information
+- Fixed an issue where module `neb_spu_info` would always default to
   `false` for parameter `not_in_pod` instead of `None`
   
-### 1.0.0 
+### 1.0.0
 
-* Initial release of the Nebulon Ansible Collection
+- Initial release of the Nebulon Ansible Collection
 
 ## License
+
 [GPLv3 License](https://www.gnu.org/licenses/gpl-3.0.en.html)
 
 ## Authors
+
 This collection was created in 2021 by Sarang Nazari, Sepehr Foroughi Shafiei
 and Shayan Namaghi and on behalf of, the Nebulon Cloud Team.

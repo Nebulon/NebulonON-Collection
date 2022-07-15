@@ -1,12 +1,13 @@
 ---
 namespace: nebulon
 name: nebulon_on
-version: 1.2.0
+version: 1.2.1
 readme: README.md
 authors:
   - Sarang Nazari
   - Sepehr Foroughi Shafiei
   - Shayan Namaghi
+  - Tobias Flitsch
 description: Collection of Ansible modules to manage Nebulon smartInfrastructure
 license:
   - GPL-3.0-or-later

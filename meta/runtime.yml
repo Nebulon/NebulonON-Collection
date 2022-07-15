@@ -1,2 +1,27 @@
 ---
 requires_ansible: '>=2.9.10'
+
+action_groups:
+  nebulon:
+    - neb_claim_spu
+    - neb_npod_group
+    - neb_ntp
+    - neb_update
+    - neb_volume
+    - neb_clone
+    - neb_npod_group_info
+    - neb_snapshot
+    - neb_user
+    - neb_volume_info
+    - neb_host_info
+    - neb_npod_info
+    - neb_snapshot_template
+    - neb_user_group
+    - neb_lun
+    - neb_npod_template
+    - neb_snapshot_template_info
+    - neb_user_group_info
+    - neb_npod
+    - neb_npod_template_info
+    - neb_spu_info
+    - neb_user_info
