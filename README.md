@@ -8,7 +8,7 @@ smartInfrastructure and cloud services.
 - Ansible 3.0.0 or higher
 - Ansible-core 2.10 or higher
 - Python 3.6 or higher
-- Internet connectivity to https://ucapi.nebcloud.nebuloninc.com/ from host where Ansible is executed
+- Internet connectivity to <https://ucapi.nebcloud.nebuloninc.com/> from host where Ansible is executed
 - Nebulon Python SDK 2.0.8
 
 ## Available modules
@@ -122,6 +122,11 @@ our tutorial page at [Nebulon Ansible Tutorial](https://on.nebulon.com/docs/en-u
 
 ## Changelog
 
+### 1.2.2
+
+- Added `neb_spu_lookup` lookup plugin that gets SPU configuration information from your inventory and
+  converts it to a structure that can be passed to the `neb_npod` module when creating a new nPod
+
 ### 1.2.1
 
 - Added support for `module_defaults` using the action group `nebulon.nebulon_on.nebulon` to simplify providing
@@ -131,26 +136,26 @@ our tutorial page at [Nebulon Ansible Tutorial](https://on.nebulon.com/docs/en-u
 
 Moved Nebulon Ansible collection from Nebulon Python SDK 1.0.15 to 2.0.8
 
-* Added Three more optional filters to module `neb_npod_template_info` for looking up nPod templates.
-    - `os` - string type filter based on nPod template operating system name
-    - `app` - string type filter based on nPod template application name
-    - `only_last_version` - boolean type filter based on their latest version 
-* Added two more optional inputs to module `neb_user` for adding, deleting and modifying Nebulon users
-    - `time_zone` - string type filter based on user's time zone
-    - `send_notification` - string type filter based on the user's notification preferences for alerts
-       - Choices: 
-            - `Daily`
-            - `Disabled`
-            - `Instant`
-* Added optional filters to module `neb_volume_info` for looking up nPod volumes
-    - `sync_state` - string type filter based on volume synchronization status
-       - Choices: 
-            - `InSync`
-            - `NotMirrored`
-            - `Syncing`
-            - `Unknown`
-            - `Unsynced`
-            - `All`
+- Added Three more optional filters to module `neb_npod_template_info` for looking up nPod templates.
+  - `os` - string type filter based on nPod template operating system name
+  - `app` - string type filter based on nPod template application name
+  - `only_last_version` - boolean type filter based on their latest version
+- Added two more optional inputs to module `neb_user` for adding, deleting and modifying Nebulon users
+  - `time_zone` - string type filter based on user's time zone
+  - `send_notification` - string type filter based on the user's notification preferences for alerts
+    - Choices:
+      - `Daily`
+      - `Disabled`
+      - `Instant`
+- Added optional filters to module `neb_volume_info` for looking up nPod volumes
+  - `sync_state` - string type filter based on volume synchronization status
+    - Choices:
+      - `InSync`
+      - `NotMirrored`
+      - `Syncing`
+      - `Unknown`
+      - `Unsynced`
+      - `All`
 
 ### 1.1.2
 
@@ -178,5 +183,5 @@ Moved Nebulon Ansible collection from Nebulon Python SDK 1.0.15 to 2.0.8
 
 ## Authors
 
-This collection was created in 2021 by Sarang Nazari, Sepehr Foroughi Shafiei
-and Shayan Namaghi and on behalf of, the Nebulon Cloud Team.
+This collection was created in 2021 by Sarang Nazari, Sepehr Foroughi Shafiei,
+Shayan Namaghi, and Tobias Flitsch on behalf of, the Nebulon Cloud Team.
