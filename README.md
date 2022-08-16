@@ -122,6 +122,11 @@ our tutorial page at [Nebulon Ansible Tutorial](https://on.nebulon.com/docs/en-u
 
 ## Changelog
 
+### 1.2.3
+
+- Updated formatting of client version string for nebpyclient to better represent the collection version
+  information in the nebulon ON audit log.
+
 ### 1.2.2
 
 - Added `neb_spu_lookup` lookup plugin that gets SPU configuration information from your inventory and
