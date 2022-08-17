@@ -1,7 +1,7 @@
 ---
 namespace: nebulon
 name: nebulon_on
-version: 1.2.3
+version: 1.2.4
 readme: README.md
 authors:
   - Sarang Nazari

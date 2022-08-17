@@ -122,6 +122,10 @@ our tutorial page at [Nebulon Ansible Tutorial](https://on.nebulon.com/docs/en-u
 
 ## Changelog
 
+### 1.2.4
+
+- Updated the requirements.txt information to match latest dependencies for the Ansible Collection
+
 ### 1.2.3
 
 - Updated formatting of client version string for nebpyclient to better represent the collection version

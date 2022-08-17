@@ -25,62 +25,61 @@ from ansible.errors import AnsibleError
 __metaclass__ = type
 
 DOCUMENTATION = """
-    name: neb_spu_lookup
-    author:
-        - Tobias Flitsch <tobias@nebulon.com>
-    version_added: "1.2.2"
-    short_description: Get SPU configuration from inventory for neb_npod module
-    description:
-        - This lookup gets SPU configuration information from your inventory
-          and converts it to a structure that can be passed to the neb_npod
-          module when creating a new nPod
-        - It will first lookup in host variables and then for any other
-          variables that are provided to the play
-    options:
-        _terms:
-            description:
-                - The name of the host group used for extracting variables
-            required: True
-        bond_mode:
-            description: Lookup key for the bond_mode parameter
-            type: str
-            default: bond_mode
-            required: False
-        bond_lacp_transmit_rate:
-            description: Lookup key for the bond_lacp_transmit_rate parameter
-            type: str
-            default: bond_lacp_transmit_rate
-            required: False
-        bond_transmit_hash_policy:
-            description: Lookup key for the bond_transmit_hash_policy parameter
-            type: str
-            default: bond_transmit_hash_policy
-            required: False
-        dhcp:
-            description: Lookup key for the dhcp parameter
-            type: str
-            default: dhcp
-            required: False
-        mtu:
-            description: Lookup key for the mtu parameter
-            type: str
-            default: mtu
-            required: False
-        netmask_bits:
-            description: Lookup key for the netmask_bits parameter
-            type: str
-            default: netmask_bits
-            required: False
-        spu_address:
-            description: Lookup key for the address parameter
-            type: str
-            default: spu_address
-            required: False
-        spu_serial:
-            description: Lookup key for the spu_serial parameter
-            type: str
-            default: spu_serial
-            required: False
+name: neb_spu_lookup
+author:
+  - Tobias Flitsch <tobias@nebulon.com>
+version_added: "1.2.2"
+short_description: Get SPU configuration from inventory for neb_npod module
+description:
+  - This lookup gets SPU configuration information from your inventory
+    and converts it to a structure that can be passed to the neb_npod
+    module when creating a new nPod
+  - It will first lookup in host variables and then for any other
+    variables that are provided to the play
+options:
+  _terms:
+    description: The name of the host group used for extracting variables
+    required: True
+  bond_mode:
+    description: Lookup key for the bond_mode parameter
+    type: str
+    default: bond_mode
+    required: False
+  bond_lacp_transmit_rate:
+    description: Lookup key for the bond_lacp_transmit_rate parameter
+    type: str
+    default: bond_lacp_transmit_rate
+    required: False
+  bond_transmit_hash_policy:
+    description: Lookup key for the bond_transmit_hash_policy parameter
+    type: str
+    default: bond_transmit_hash_policy
+    required: False
+  dhcp:
+    description: Lookup key for the dhcp parameter
+    type: str
+    default: dhcp
+    required: False
+  mtu:
+    description: Lookup key for the mtu parameter
+    type: str
+    default: mtu
+    required: False
+  netmask_bits:
+    description: Lookup key for the netmask_bits parameter
+    type: str
+    default: netmask_bits
+    required: False
+  spu_address:
+    description: Lookup key for the address parameter
+    type: str
+    default: spu_address
+    required: False
+  spu_serial:
+    description: Lookup key for the spu_serial parameter
+    type: str
+    default: spu_serial
+    required: False
 """
 
 EXAMPLES = """
@@ -95,9 +94,9 @@ EXAMPLES = """
 
 RETURN = """
 _list:
-    description:
-        - Values for the spu parameter of the neb_npod module
-    type: list
+  description:
+    - Values for the spu parameter of the neb_npod module
+  type: list
 """
 
 display = Display()
@@ -131,6 +130,7 @@ LOOKUP_KEYS = [
 
 
 def lookup_key_values(**kwargs):
+    # type: (any) -> dict
     """Compile the lookup keys dictionary from plugin arguments"""
     lookup_keys = {}
     for key in LOOKUP_KEYS:
