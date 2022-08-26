@@ -122,6 +122,16 @@ our tutorial page at [Nebulon Ansible Tutorial](https://on.nebulon.com/docs/en-u
 
 ## Changelog
 
+### 1.3.0
+
+- Introduced a new `neb_volume_access` module that simplifies the process of managing access to volumes
+  by hosts in a nPod. This module replaces the deprecated `neb_lun` module.
+
+- __Deprecated__ the `neb_lun` module. This module will be removed on October 1st 2022.
+
+- Introduced a new `neb_host` module that allows configuration of host (server) properties,
+  including host display name and note.
+
 ### 1.2.4
 
 - Updated the requirements.txt information to match latest dependencies for the Ansible Collection

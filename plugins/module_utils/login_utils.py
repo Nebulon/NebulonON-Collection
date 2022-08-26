@@ -21,9 +21,17 @@ from __future__ import (absolute_import, division, print_function)
 __metaclass__ = type
 
 from ansible.module_utils.basic import AnsibleModule
-import nebpyclient
 import sys
-from nebpyclient import NebPyClient
+
+try:
+    from nebpyclient import (
+        NebPyClient,
+        __version__,
+    )
+
+except ImportError:
+    pass
+
 
 __all__ = [
     "get_login_arguments",
@@ -37,7 +45,7 @@ REQ_PYTHON_VERSION_MINOR = 6
 # Need to statically provide the collection version here as the standard files
 # where this information can be collected from won't be sent to the remote
 # machine.
-COLLECTION_VERSION = '1.2.4'
+COLLECTION_VERSION = '1.3.0'
 
 
 def get_login_arguments():
@@ -81,7 +89,7 @@ def get_client(module):
     is_python_compatible(module, sys.version_info.major, sys.version_info.minor)
 
     # check for Nebulon SDK compatibility
-    installed_sdk_version = nebpyclient.__version__.strip()
+    installed_sdk_version = __version__.strip()
     if REQUIRED_NEB_SDK_VERSION != installed_sdk_version:
         err_msg = "The Nebulon Ansible Collection depends on the Python library"
         err_msg += f" version {REQUIRED_NEB_SDK_VERSION}. Your current version"

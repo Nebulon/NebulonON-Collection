@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Copyright (C) 2021 Nebulon, Inc.
+# Copyright (C) 2021, 2022 Nebulon, Inc.
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -28,6 +28,11 @@ description:
   - This module allows creating or deleting LUN(s).
 author:
   - Nebulon Team (@nebulon) <info@nebulon.com>
+version_added: 1.0.0
+deprecated:
+  alternative: Use "neb_volume_access" module
+  why: Simplified workflow with better user experience
+  removed_at_date: '2022-10-01'
 options:
   volume_uuid:
     description: The unique identifier of the volume that shall be made available to a host
@@ -40,7 +45,7 @@ options:
     type: int
     required: false
   lun_uuids:
-    description: List of LUN UUIDs used only for deleteing LUNs.
+    description: List of LUN UUIDs used only for deleting LUNs.
     type: list
     elements: str
     required: false
@@ -112,21 +117,46 @@ EXAMPLES = r"""
 RETURN = r"""
 """
 
-from ansible_collections.nebulon.nebulon_on.plugins.module_utils.login_utils import get_client, get_login_arguments
-from ansible.module_utils.basic import AnsibleModule
-from nebpyclient import VolumeFilter, UUIDFilter, HostFilter, LUNFilter, StringFilter, CreateLUNInput
+# pylint: disable=wrong-import-position,no-name-in-module,import-error
+import copy
+import traceback
+from ansible.module_utils.basic import (
+    AnsibleModule,
+    missing_required_lib,
+)
+from ansible_collections.nebulon.nebulon_on.plugins.module_utils.login_utils import (
+    get_client,
+    get_login_arguments,
+)
+
+try:
+    from nebpyclient import (
+        NebPyClient,
+        VolumeFilter,
+        UUIDFilter,
+        HostFilter,
+        LUNFilter,
+        StringFilter,
+        CreateLUNInput,
+        __version__,
+    )
+
+except ImportError:
+    NEBULON_SDK_VERSION = None
+    NEBULON_IMPORT_ERROR = traceback.format_exc()
+
+else:
+    NEBULON_SDK_VERSION = __version__.strip()
+    NEBULON_IMPORT_ERROR = None
 
 
-def delete_luns(module, client) -> dict:
+def delete_luns(module, client):
+    # type: (AnsibleModule, NebPyClient) -> dict
     """Removes all exports matching a provided criteria"""
 
     result = dict(
         changed=False
     )
-    volume_uuid = module.params['volume_uuid']
-    spu_serials = module.params['spu_serials']
-    lun_id = module.params['lun_id']
-    host_uuids = module.params['host_uuids']
     lun_uuids = module.params['lun_uuids']
 
     lun_list = client.get_luns(
@@ -146,6 +176,7 @@ def delete_luns(module, client) -> dict:
             client.delete_lun(
                 lun_uuid=lun.uuid
             )
+    # pylint: disable=broad-except
     except Exception as err:
         module.fail_json(msg=str(err))
 
@@ -154,15 +185,16 @@ def delete_luns(module, client) -> dict:
 
 
 def create_luns(module, client):
+    # type: (AnsibleModule, NebPyClient) -> dict
     """Creates LUNs for matching criteria"""
 
     result = dict(
         changed=False
     )
     volume_uuid = module.params['volume_uuid']
-    spu_serials = module.params['spu_serials']
+    spu_serials = copy.deepcopy(module.params['spu_serials'])
     lun_id = module.params['lun_id']
-    host_uuids = module.params['host_uuids']
+    host_uuids = copy.deepcopy(module.params['host_uuids'])
 
     volume_list = client.get_volumes(
         volume_filter=VolumeFilter(
@@ -174,7 +206,6 @@ def create_luns(module, client):
 
     if volume_list.filtered_count == 0:
         module.fail_json(msg="Volume does not exist")
-        return
 
     # get all relevant spu serials
     # TODO: This will not work with 2 SPUs in one server
@@ -217,9 +248,9 @@ def create_luns(module, client):
                 lun_id=lun_id,
                 spu_serials=spu_serials,
                 local=module.params['local'],
-                host_uuids=module.params['host_uuids']
             )
         )
+    # pylint: disable=broad-except
     except Exception as err:
         module.fail_json(msg=str(err))
 
@@ -228,6 +259,8 @@ def create_luns(module, client):
 
 
 def main():
+    """Main entry point"""
+
     module_args = dict(
         volume_uuid=dict(required=False, type='str'),
         lun_id=dict(required=False, type='int'),
@@ -243,6 +276,14 @@ def main():
         argument_spec=module_args,
         supports_check_mode=False
     )
+
+    # check if SDK is loaded
+    if NEBULON_SDK_VERSION is None:
+        module.fail_json(
+            msg=missing_required_lib("nebpyclient"),
+            error_details=str(NEBULON_IMPORT_ERROR),
+            error_class=type(NEBULON_IMPORT_ERROR).__name__,
+        )
 
     result = dict(
         changed=False

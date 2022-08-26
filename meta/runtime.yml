@@ -1,27 +1,36 @@
 ---
-requires_ansible: '>=2.9.10'
+requires_ansible: ">=2.9.10"
 
 action_groups:
   nebulon:
     - neb_claim_spu
-    - neb_npod_group
-    - neb_ntp
-    - neb_update
-    - neb_volume
     - neb_clone
-    - neb_npod_group_info
-    - neb_snapshot
-    - neb_user
-    - neb_volume_info
+    - neb_host
     - neb_host_info
-    - neb_npod_info
-    - neb_snapshot_template
-    - neb_user_group
     - neb_lun
-    - neb_npod_template
-    - neb_snapshot_template_info
-    - neb_user_group_info
     - neb_npod
+    - neb_npod_group
+    - neb_npod_group_info
+    - neb_npod_info
+    - neb_npod_template
     - neb_npod_template_info
+    - neb_ntp
+    - neb_snapshot
+    - neb_snapshot_template
+    - neb_snapshot_template_info
     - neb_spu_info
+    - neb_update
+    - neb_user
+    - neb_user_group
+    - neb_user_group_info
     - neb_user_info
+    - neb_volume
+    - neb_volume_access
+    - neb_volume_info
+
+plugin_routing:
+  modules:
+    neb_lun:
+      deprecation:
+        removal_date: "2022-10-01"
+        warning_text: Use nebulon.nebulon_on.neb_volume_access instead.
