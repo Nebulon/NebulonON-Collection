@@ -218,10 +218,39 @@ user:
       returned: always
 """
 
-from ansible_collections.nebulon.nebulon_on.plugins.module_utils.class_utils import to_dict
-from ansible_collections.nebulon.nebulon_on.plugins.module_utils.login_utils import get_client, get_login_arguments
+import traceback
 from ansible.module_utils.basic import AnsibleModule
-from nebpyclient import UserFilter, StringFilter, UserGroupFilter, User, UserGroup, CreateUserInput, UpdateUserInput, SendNotificationType
+from ansible_collections.nebulon.nebulon_on.plugins.module_utils.login_utils import (
+    get_client,
+    get_login_arguments,
+)
+from ansible_collections.nebulon.nebulon_on.plugins.module_utils.neb_utils import (
+    to_dict,
+    validate_sdk,
+)
+
+# safe import of the Nebulon Python SDK
+try:
+    from nebpyclient import (
+        NebPyClient,
+        UserFilter,
+        StringFilter,
+        UserGroupFilter,
+        User,
+        UserGroup,
+        CreateUserInput,
+        UpdateUserInput,
+        SendNotificationType,
+        __version__,
+    )
+
+except ImportError:
+    NEBULON_SDK_VERSION = None
+    NEBULON_IMPORT_ERROR = traceback.format_exc()
+
+else:
+    NEBULON_SDK_VERSION = __version__.strip()
+    NEBULON_IMPORT_ERROR = None
 
 
 def get_user(module, client, user_name):
@@ -308,7 +337,7 @@ def add_user(module, client, result):
 
 
 def modify_user(module, client, user, result):
-    # type: (AnsibleModule, NebPyClient, str, dict) -> None
+    # type: (AnsibleModule, NebPyClient, User, dict) -> None
     """Allow updating properties of an existing user"""
     should_update = False
     for key in module.params:
@@ -322,8 +351,9 @@ def modify_user(module, client, user, result):
         except AttributeError:
             should_update = False
 
-    # we assume password change is requested if password is passed to the module. we can not read password from User
-    # object and for that reason we can not determine if the new password is the same as stored password
+    # we assume password change is requested if password is passed to the module. we can not read
+    # password from User object and for that reason we can not determine if the new password is
+    # the same as stored password
     if module.params['password'] is not None:
         should_update = True
 
@@ -384,7 +414,12 @@ def main():
         business_phone=dict(required=False, type='str'),
         inactive=dict(required=False, type='bool'),
         policy_uuids=dict(required=False, type='list', elements='str'),
-        send_notification=dict(required=False, type='str', choices=['Daily', 'Disabled', 'Instant'], default='Disabled'),
+        send_notification=dict(
+            required=False,
+            type='str',
+            choices=['Daily', 'Disabled', 'Instant'],
+            default='Disabled',
+        ),
         time_zone=dict(required=False, type='str'),
         state=dict(required=True, choices=['present', 'absent'])
     )
@@ -397,6 +432,13 @@ def main():
 
     result = dict(
         changed=False
+    )
+
+    # check for Nebulon SDK compatibility
+    validate_sdk(
+        module=module,
+        version=NEBULON_SDK_VERSION,
+        import_error=NEBULON_IMPORT_ERROR,
     )
 
     client = get_client(module)

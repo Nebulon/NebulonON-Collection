@@ -283,11 +283,37 @@ snapshot_schedule:
       returned: always
 """
 
+import traceback
 from ansible.module_utils.basic import AnsibleModule
-from ansible_collections.nebulon.nebulon_on.plugins.module_utils.login_utils import get_client, get_login_arguments
-from ansible_collections.nebulon.nebulon_on.plugins.module_utils.class_utils import to_dict
-from nebpyclient import SnapshotScheduleTemplate, SnapshotScheduleTemplateFilter, ScheduleInput, StringFilter
-from nebpyclient import CreateSnapshotScheduleTemplateInput, UpdateSnapshotScheduleTemplateInput
+from ansible_collections.nebulon.nebulon_on.plugins.module_utils.login_utils import (
+    get_client,
+    get_login_arguments,
+)
+from ansible_collections.nebulon.nebulon_on.plugins.module_utils.neb_utils import (
+    to_dict,
+    validate_sdk,
+)
+
+# safe import of the Nebulon Python SDK
+try:
+    from nebpyclient import (
+        NebPyClient,
+        SnapshotScheduleTemplate,
+        SnapshotScheduleTemplateFilter,
+        ScheduleInput,
+        StringFilter,
+        CreateSnapshotScheduleTemplateInput,
+        UpdateSnapshotScheduleTemplateInput,
+        __version__,
+    )
+
+except ImportError:
+    NEBULON_SDK_VERSION = None
+    NEBULON_IMPORT_ERROR = traceback.format_exc()
+
+else:
+    NEBULON_SDK_VERSION = __version__.strip()
+    NEBULON_IMPORT_ERROR = None
 
 
 def seconds_as_dict(seconds):
@@ -391,12 +417,13 @@ def create_snapshot_template(module, client):
 
     result['changed'] = True
     result['snapshot_schedule_template'] = get_snapshot_schedule_template_as_dict(
-        new_snapshot_template)
+        new_snapshot_template
+    )
     return result
 
 
 def modify_snapshot_template(module, client, schedule_template):
-    # type: (AnsibleModule, NebPyClient, str) -> dict
+    # type: (AnsibleModule, NebPyClient, SnapshotScheduleTemplate) -> dict
     """Allows modifying a Snapshot Schedule Template"""
     result = dict(
         changed=False,
@@ -506,6 +533,13 @@ def main():
 
     result = dict(
         changed=False,
+    )
+
+    # check for Nebulon SDK compatibility
+    validate_sdk(
+        module=module,
+        version=NEBULON_SDK_VERSION,
+        import_error=NEBULON_IMPORT_ERROR,
     )
 
     client = get_client(module)

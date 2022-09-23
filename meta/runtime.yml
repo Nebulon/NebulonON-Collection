@@ -3,6 +3,7 @@ requires_ansible: ">=2.9.10"
 
 action_groups:
   nebulon:
+    - neb_capacity_info
     - neb_claim_spu
     - neb_clone
     - neb_host
@@ -24,6 +25,7 @@ action_groups:
     - neb_user_group
     - neb_user_group_info
     - neb_user_info
+    - neb_vcenter
     - neb_volume
     - neb_volume_access
     - neb_volume_info

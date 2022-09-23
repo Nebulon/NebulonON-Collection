@@ -128,7 +128,11 @@ from ansible_collections.nebulon.nebulon_on.plugins.module_utils.login_utils imp
     get_client,
     get_login_arguments,
 )
+from ansible_collections.nebulon.nebulon_on.plugins.module_utils.neb_utils import (
+    validate_sdk,
+)
 
+# safe import of the Nebulon Python SDK
 try:
     from nebpyclient import (
         NebPyClient,
@@ -277,13 +281,12 @@ def main():
         supports_check_mode=False
     )
 
-    # check if SDK is loaded
-    if NEBULON_SDK_VERSION is None:
-        module.fail_json(
-            msg=missing_required_lib("nebpyclient"),
-            error_details=str(NEBULON_IMPORT_ERROR),
-            error_class=type(NEBULON_IMPORT_ERROR).__name__,
-        )
+    # check for Nebulon SDK compatibility
+    validate_sdk(
+        module=module,
+        version=NEBULON_SDK_VERSION,
+        import_error=NEBULON_IMPORT_ERROR,
+    )
 
     result = dict(
         changed=False

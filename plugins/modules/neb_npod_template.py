@@ -200,10 +200,36 @@ npod_template:
       returned: always
 """
 
-from ansible_collections.nebulon.nebulon_on.plugins.module_utils.class_utils import to_dict
-from ansible_collections.nebulon.nebulon_on.plugins.module_utils.login_utils import get_client, get_login_arguments
+import traceback
 from ansible.module_utils.basic import AnsibleModule
-from nebpyclient import NPodTemplateFilter, NPodTemplate, StringFilter, CreateNPodTemplateInput, UpdateNPodTemplateInput
+from ansible_collections.nebulon.nebulon_on.plugins.module_utils.login_utils import (
+    get_client,
+    get_login_arguments,
+)
+from ansible_collections.nebulon.nebulon_on.plugins.module_utils.neb_utils import (
+    to_dict,
+    validate_sdk,
+)
+
+# safe import of the Nebulon Python SDK
+try:
+    from nebpyclient import (
+        NebPyClient,
+        NPodTemplateFilter,
+        NPodTemplate,
+        StringFilter,
+        CreateNPodTemplateInput,
+        UpdateNPodTemplateInput,
+        __version__,
+    )
+
+except ImportError:
+    NEBULON_SDK_VERSION = None
+    NEBULON_IMPORT_ERROR = traceback.format_exc()
+
+else:
+    NEBULON_SDK_VERSION = __version__.strip()
+    NEBULON_IMPORT_ERROR = None
 
 
 def get_npod_template(client, name):
@@ -275,7 +301,7 @@ def create_npod_template(module, client):
 
 
 def modify_npod_template(module, client, npod_template):
-    # type: (AnsibleModule, NebPyClient, str) -> dict
+    # type: (AnsibleModule, NebPyClient, NPodTemplate) -> dict
     """Allows modifying a npod_template"""
     result = dict(
         changed=False,
@@ -311,11 +337,10 @@ def modify_npod_template(module, client, npod_template):
                     volume_count=module.params['volume_count']
                 )
             )
+            result['changed'] = True
+            result['npod_template'] = to_dict(modified_npod_template)
         except Exception as err:
             module.fail_json(msg=str(err))
-
-        result['changed'] = True
-        result['npod_template'] = to_dict(modified_npod_template)
 
     else:
         result['changed'] = False
@@ -351,6 +376,13 @@ def main():
 
     result = dict(
         changed=False
+    )
+
+    # check for Nebulon SDK compatibility
+    validate_sdk(
+        module=module,
+        version=NEBULON_SDK_VERSION,
+        import_error=NEBULON_IMPORT_ERROR,
     )
 
     client = get_client(module)

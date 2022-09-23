@@ -18,17 +18,13 @@
 
 
 from __future__ import absolute_import, division, print_function
-from ansible.utils.display import Display
-from ansible.plugins.lookup import LookupBase
-from ansible.errors import AnsibleError
-
 __metaclass__ = type
 
 DOCUMENTATION = """
 name: neb_spu_lookup
 author:
-  - Tobias Flitsch <tobias@nebulon.com>
-version_added: "1.2.2"
+  - Tobias Flitsch (@tflitsch) <tobias@nebulon.com>
+version_added: "1.3.0"
 short_description: Get SPU configuration from inventory for neb_npod module
 description:
   - This lookup gets SPU configuration information from your inventory
@@ -98,6 +94,10 @@ _list:
     - Values for the spu parameter of the neb_npod module
   type: list
 """
+
+from ansible.utils.display import Display
+from ansible.plugins.lookup import LookupBase
+from ansible.errors import AnsibleError
 
 display = Display()
 

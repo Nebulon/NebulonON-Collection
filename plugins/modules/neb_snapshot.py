@@ -94,9 +94,33 @@ EXAMPLES = r"""
 RETURN = r"""
 """
 
-from ansible_collections.nebulon.nebulon_on.plugins.module_utils.login_utils import get_client, get_login_arguments
+import traceback
 from ansible.module_utils.basic import AnsibleModule
-from nebpyclient import Volume, VolumeFilter, UUIDFilter
+from ansible_collections.nebulon.nebulon_on.plugins.module_utils.login_utils import (
+    get_client,
+    get_login_arguments,
+)
+from ansible_collections.nebulon.nebulon_on.plugins.module_utils.neb_utils import (
+    validate_sdk,
+)
+
+# safe import of the Nebulon Python SDK
+try:
+    from nebpyclient import (
+        NebPyClient,
+        Volume,
+        VolumeFilter,
+        UUIDFilter,
+        __version__,
+    )
+
+except ImportError:
+    NEBULON_SDK_VERSION = None
+    NEBULON_IMPORT_ERROR = traceback.format_exc()
+
+else:
+    NEBULON_SDK_VERSION = __version__.strip()
+    NEBULON_IMPORT_ERROR = None
 
 
 def get_snapshot(module, client, snapshot_uuid):
@@ -169,6 +193,13 @@ def main():
 
     result = dict(
         changed=False
+    )
+
+    # check for Nebulon SDK compatibility
+    validate_sdk(
+        module=module,
+        version=NEBULON_SDK_VERSION,
+        import_error=NEBULON_IMPORT_ERROR,
     )
 
     client = get_client(module)

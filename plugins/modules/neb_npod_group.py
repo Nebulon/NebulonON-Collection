@@ -113,10 +113,36 @@ npod_group:
             returned: always
 """
 
-from ansible_collections.nebulon.nebulon_on.plugins.module_utils.class_utils import to_dict
-from ansible_collections.nebulon.nebulon_on.plugins.module_utils.login_utils import get_client, get_login_arguments
+import traceback
 from ansible.module_utils.basic import AnsibleModule
-from nebpyclient import NPodGroup, NPodGroupFilter, StringFilter, CreateNPodGroupInput, UpdateNPodGroupInput
+from ansible_collections.nebulon.nebulon_on.plugins.module_utils.login_utils import (
+    get_client,
+    get_login_arguments,
+)
+from ansible_collections.nebulon.nebulon_on.plugins.module_utils.neb_utils import (
+    to_dict,
+    validate_sdk,
+)
+
+# safe import of the Nebulon Python SDK
+try:
+    from nebpyclient import (
+        NebPyClient,
+        NPodGroup,
+        NPodGroupFilter,
+        StringFilter,
+        CreateNPodGroupInput,
+        UpdateNPodGroupInput,
+        __version__,
+    )
+
+except ImportError:
+    NEBULON_SDK_VERSION = None
+    NEBULON_IMPORT_ERROR = traceback.format_exc()
+
+else:
+    NEBULON_SDK_VERSION = __version__.strip()
+    NEBULON_IMPORT_ERROR = None
 
 
 def get_npod_group(module, client, group_name):
@@ -165,16 +191,15 @@ def create_npod_group(module, client):
                 note=module.params['note']
             )
         )
+        result['changed'] = True
+        result['npod_group'] = to_dict(new_npod_group)
+        return result
     except Exception as err:
         module.fail_json(msg=str(err))
 
-    result['changed'] = True
-    result['npod_group'] = to_dict(new_npod_group)
-    return result
-
 
 def modify_npod_group(module, client, npod_group):
-    # type: (AnsibleModule, NebPyClient, str) -> dict
+    # type: (AnsibleModule, NebPyClient, NPodGroup) -> dict
     """Allows modifying a nPod group"""
     result = dict(
         changed=False
@@ -199,12 +224,11 @@ def modify_npod_group(module, client, npod_group):
                     note=module.params['note'],
                 )
             )
+            result['changed'] = True
+            result['npod_group'] = to_dict(modified_npod_group)
+            return result
         except Exception as err:
             module.fail_json(msg=str(err))
-
-        result['changed'] = True
-        result['npod_group'] = to_dict(modified_npod_group)
-        return result
 
     else:
         result['changed'] = False
@@ -227,6 +251,13 @@ def main():
 
     result = dict(
         changed=False,
+    )
+
+    # check for Nebulon SDK compatibility
+    validate_sdk(
+        module=module,
+        version=NEBULON_SDK_VERSION,
+        import_error=NEBULON_IMPORT_ERROR,
     )
 
     client = get_client(module)

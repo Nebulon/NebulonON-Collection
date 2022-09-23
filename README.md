@@ -122,6 +122,12 @@ our tutorial page at [Nebulon Ansible Tutorial](https://on.nebulon.com/docs/en-u
 
 ## Changelog
 
+### 1.4.0
+
+- Introduced a new `neb_capacity_info` module that allows automation users to query volumes, SPUs,
+  and nPods for capacity information.
+- Introduced a new `neb_vcenter` module that allows configuring the vCenter integration for nPods.
+
 ### 1.3.0
 
 - Introduced a new `neb_volume_access` module that simplifies the process of managing access to volumes
@@ -203,4 +209,4 @@ Moved Nebulon Ansible collection from Nebulon Python SDK 1.0.15 to 2.0.8
 ## Authors
 
 This collection was created in 2021 by Sarang Nazari, Sepehr Foroughi Shafiei,
-Shayan Namaghi, and Tobias Flitsch on behalf of, the Nebulon Cloud Team.
+Shayan Namaghi, and Tobias Flitsch on behalf of the Nebulon Cloud Team.

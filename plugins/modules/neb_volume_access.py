@@ -129,10 +129,7 @@ host_uuids:
 import traceback
 import time
 from typing import List
-from ansible.module_utils.basic import (
-    AnsibleModule,
-    missing_required_lib,
-)
+from ansible.module_utils.basic import AnsibleModule
 from ansible_collections.nebulon.nebulon_on.plugins.module_utils.login_utils import (
     get_client,
     get_login_arguments,
@@ -140,6 +137,7 @@ from ansible_collections.nebulon.nebulon_on.plugins.module_utils.login_utils imp
 from ansible_collections.nebulon.nebulon_on.plugins.module_utils.neb_utils import (
     get_volume,
     get_npod,
+    validate_sdk,
 )
 
 try:
@@ -167,9 +165,9 @@ def delete_luns(client, volume, lun_uuids=None):
     # type: (NebPyClient, Volume, List[str]) -> None
     """Removes all exports matching a provided criteria"""
 
+    lun_definition_uuids = []
     if lun_uuids is not None and len(lun_uuids) > 0:
         # make sure that the LUN definition UUIDs are unique
-        lun_definition_uuids = []
         for lun_uuid in lun_uuids:
             if lun_uuid not in lun_definition_uuids:
                 lun_definition_uuids.append(lun_uuid)
@@ -184,8 +182,6 @@ def delete_luns(client, volume, lun_uuids=None):
         #         lun_uuids=lun_definition_uuids,
         #     )
         # )
-        for lun_uuid in lun_definition_uuids:
-            client.delete_lun(lun_uuid=lun_uuid)
 
     else:
 
@@ -199,13 +195,12 @@ def delete_luns(client, volume, lun_uuids=None):
         #     )
         # )
         existing_luns = get_existing_luns(client, volume)
-        lun_definition_uuids = []
         for existing_lun in existing_luns:
             if existing_lun.definition_uuid not in lun_definition_uuids:
                 lun_definition_uuids.append(existing_lun.definition_uuid)
 
-        for lun_uuid in lun_definition_uuids:
-            client.delete_lun(lun_uuid=lun_uuid)
+    for lun_uuid in lun_definition_uuids:
+        client.delete_lun(lun_uuid=lun_uuid)
 
     # TODO: there is another issue in the python SDK where the called function
     # is async. However, we cannot continue until the LUNs are gone
@@ -214,7 +209,7 @@ def delete_luns(client, volume, lun_uuids=None):
 
 def _wait_for_lun_deletion(client, lun_uuids):
     # type: (NebPyClient, List[str]) -> None
-    for nap_time in (1, 1, 2, 3, 5, 8, 11):
+    for nap_time in (1, 1, 2, 3, 5, 8, 11, 19):
         time.sleep(nap_time)
 
         lun_list = client.get_luns(
@@ -227,6 +222,8 @@ def _wait_for_lun_deletion(client, lun_uuids):
 
         if lun_list.filtered_count == 0:
             return
+
+    raise Exception("Couldn't remove existing LUNs for volume")
 
 
 def get_existing_luns(client, volume):
@@ -243,6 +240,17 @@ def get_existing_luns(client, volume):
     )
 
     return lun_list.items
+
+
+def are_npod_lun(items):
+    # type: (List[LUN]) -> bool
+    """Returns if the provided LUN is a nPod LUN or a regular LUN"""
+
+    for item in items:
+        if item.definition_uuid == item.uuid:
+            return False
+
+    return True
 
 
 def create_npod_lun(client, volume, lun_id=None):
@@ -322,7 +330,7 @@ def main():
     # append the standard login arguments to the module
     module_args.update(get_login_arguments())
 
-    # setup the module
+    # set up the module
     module = AnsibleModule(
         argument_spec=module_args,
         supports_check_mode=False,
@@ -331,13 +339,12 @@ def main():
         ]
     )
 
-    # check if SDK is loaded
-    if NEBULON_SDK_VERSION is None:
-        module.fail_json(
-            msg=missing_required_lib("nebpyclient"),
-            error_details=str(NEBULON_IMPORT_ERROR),
-            error_class=type(NEBULON_IMPORT_ERROR).__name__,
-        )
+    # check for Nebulon SDK compatibility
+    validate_sdk(
+        module=module,
+        version=NEBULON_SDK_VERSION,
+        import_error=NEBULON_IMPORT_ERROR,
+    )
 
     # initialize the result
     result = dict(
@@ -360,9 +367,9 @@ def main():
         existing_luns = get_existing_luns(client, volume)
 
         if desired_state == 'absent':
-            # the volume should not be exported to any hosts and therefore
+            # the volume should not be exported to any hosts, and therefore
             # we should delete all LUNs that currently exist for the volume
-            # If there are none, this criteria is already met
+            # If there are none, this criterion is already met
             if len(existing_luns) == 0:
                 result['changed'] = False
                 result['host_uuids'] = []
@@ -381,24 +388,32 @@ def main():
         if desired_state in ['all', 'present']:
             # the volume should be exported to all hosts in the nPod
 
-            # if there are any existing LUNs where the LUN ID does not match
-            # we unfortunately need to delete them first. This also takes care
-            # of the case where a volume is exported with different LUN IDs
-            # to different hosts
+            # if there are any existing LUNs, and they are not nPod LUNs, or nPod LUNs where
+            # the LUN ID does not match, we unfortunately need to delete them first.
             unwanted_lun_uuids = []
             desired_lun_id = lun_id if lun_id is not None else -1
             existing_host_uuids = []
 
-            for existing_lun in existing_luns:
-                if desired_lun_id == -1:
-                    desired_lun_id = existing_lun.lun_id
-                if existing_lun.lun_id != desired_lun_id:
-                    unwanted_lun_uuids.append(existing_lun.definition_uuid)
-                else:
+            if len(existing_luns) > 0:
+                for existing_lun in existing_luns:
+                    if existing_lun.definition_uuid == existing_lun.uuid:
+                        # not a nPod LUN - needs to be removed
+                        unwanted_lun_uuids.append(existing_lun.definition_uuid)
+                        continue
+
+                    if desired_lun_id == -1:
+                        desired_lun_id = existing_lun.lun_id
+
+                    if existing_lun.lun_id != desired_lun_id:
+                        # the used LUN ID is not the desired one - needs to be removed
+                        unwanted_lun_uuids.append(existing_lun.definition_uuid)
+                        continue
+
+                    # this LUN is ok
                     existing_host_uuids.append(existing_lun.host_uuid)
 
             if len(unwanted_lun_uuids) > 0:
-                module.warn("Unexporting volume from some hosts")
+                module.warn("Unexporting volume from hosts")
                 delete_luns(
                     client=client,
                     volume=volume,
@@ -468,7 +483,8 @@ def main():
                     continue
 
                 # this volume is exported to a host that is not the
-                # owner of the volume. We need to delete this LUN
+                # desired host. We need to delete this LUN. This will also take care of the
+                # nPod LUN scenario.
                 unwanted_lun_uuids.append(existing_lun.definition_uuid)
 
             # delete any LUNs that are not supposed to be there

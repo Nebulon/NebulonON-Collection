@@ -176,10 +176,37 @@ volume:
 
 """
 
-from ansible_collections.nebulon.nebulon_on.plugins.module_utils.class_utils import to_dict
-from ansible_collections.nebulon.nebulon_on.plugins.module_utils.login_utils import get_client, get_login_arguments
+import traceback
 from ansible.module_utils.basic import AnsibleModule
-from nebpyclient import VolumeFilter, StringFilter, UUIDFilter, PageInput, VolumeSyncState, LUNFilter
+from ansible_collections.nebulon.nebulon_on.plugins.module_utils.login_utils import (
+    get_client,
+    get_login_arguments,
+)
+from ansible_collections.nebulon.nebulon_on.plugins.module_utils.neb_utils import (
+    to_dict,
+    validate_sdk,
+)
+
+# safe import of the Nebulon Python SDK
+try:
+    from nebpyclient import (
+        NebPyClient,
+        VolumeFilter,
+        StringFilter,
+        UUIDFilter,
+        PageInput,
+        VolumeSyncState,
+        LUNFilter,
+        __version__,
+    )
+
+except ImportError:
+    NEBULON_SDK_VERSION = None
+    NEBULON_IMPORT_ERROR = traceback.format_exc()
+
+else:
+    NEBULON_SDK_VERSION = __version__.strip()
+    NEBULON_IMPORT_ERROR = None
 
 
 def get_volumes(module, client):
@@ -271,18 +298,29 @@ def main():
         volume_wwn=dict(required=False, type='str'),
         parent_volume_uuid=dict(required=False, type='str'),
         base_only=dict(required=False, type='bool', default=False),
-        sync_state=dict(required=False, type='str', choices=['InSync', 'NotMirrored', 'Syncing', 'Unknown', 'Unsynced',
-                                                             'All'], default='All'),
+        sync_state=dict(
+            required=False,
+            type='str',
+            choices=['InSync', 'NotMirrored', 'Syncing', 'Unknown', 'Unsynced', 'All'],
+            default='All',
+        ),
     )
     module_args.update(get_login_arguments())
 
     module = AnsibleModule(
         argument_spec=module_args,
-        supports_check_mode=False
+        supports_check_mode=True,
     )
 
     result = dict(
         volumes=[]
+    )
+
+    # check for Nebulon SDK compatibility
+    validate_sdk(
+        module=module,
+        version=NEBULON_SDK_VERSION,
+        import_error=NEBULON_IMPORT_ERROR,
     )
 
     client = get_client(module)

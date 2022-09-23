@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Copyright (C) 2021 Nebulon, Inc.
+# Copyright (C) 2021, 2022 Nebulon, Inc.
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -64,9 +64,31 @@ EXAMPLES = r"""
 RETURN = r"""
 """
 
-from ansible_collections.nebulon.nebulon_on.plugins.module_utils.login_utils import get_client, get_login_arguments
+import traceback
 from ansible.module_utils.basic import AnsibleModule
-from nebpyclient import SpuFilter, StringFilter
+from ansible_collections.nebulon.nebulon_on.plugins.module_utils.neb_utils import (
+    validate_sdk,
+)
+from ansible_collections.nebulon.nebulon_on.plugins.module_utils.login_utils import (
+    get_client,
+    get_login_arguments,
+)
+
+# safe import of the Nebulon Python SDK
+try:
+    from nebpyclient import (
+        SpuFilter,
+        StringFilter,
+        __version__,
+    )
+
+except ImportError:
+    NEBULON_SDK_VERSION = None
+    NEBULON_IMPORT_ERROR = traceback.format_exc()
+
+else:
+    NEBULON_SDK_VERSION = __version__.strip()
+    NEBULON_IMPORT_ERROR = None
 
 
 def spu_exist(client, spu_serial):
@@ -122,6 +144,13 @@ def main():
 
     result = dict(
         changed=False
+    )
+
+    # check for Nebulon SDK compatibility
+    validate_sdk(
+        module=module,
+        version=NEBULON_SDK_VERSION,
+        import_error=NEBULON_IMPORT_ERROR,
     )
 
     client = get_client(module)

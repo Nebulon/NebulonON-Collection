@@ -17,11 +17,15 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from __future__ import (absolute_import, division, print_function)
-
 __metaclass__ = type
 
-from ansible.module_utils.basic import AnsibleModule
 import sys
+import os
+import traceback
+from ansible.module_utils.basic import AnsibleModule
+from ansible_collections.nebulon.nebulon_on.plugins.module_utils.neb_utils import (
+    validate_sdk,
+)
 
 try:
     from nebpyclient import (
@@ -30,30 +34,36 @@ try:
     )
 
 except ImportError:
-    pass
+    NEBULON_SDK_VERSION = None
+    NEBULON_IMPORT_ERROR = traceback.format_exc()
 
+else:
+    NEBULON_SDK_VERSION = __version__.strip()
+    NEBULON_IMPORT_ERROR = None
 
 __all__ = [
     "get_login_arguments",
     "get_client"
 ]
 
-REQUIRED_NEB_SDK_VERSION = "2.0.8"
+COMPATIBLE_SDK_VERSIONS = [
+    "2.0.8",
+]
 REQ_PYTHON_VERSION_MAJOR = 3
 REQ_PYTHON_VERSION_MINOR = 6
 
 # Need to statically provide the collection version here as the standard files
 # where this information can be collected from won't be sent to the remote
 # machine.
-COLLECTION_VERSION = '1.3.0'
+COLLECTION_VERSION = '1.4.0'
 
 
 def get_login_arguments():
     # type: () -> dict
-    """Get the parameters required to login to Nebulon ON"""
+    """Get the parameters required to log in to Nebulon ON"""
     return dict(
-        neb_username=dict(required=True),
-        neb_password=dict(required=True, no_log=True),
+        neb_username=dict(required=True, type='str'),
+        neb_password=dict(required=True, type='str', no_log=True),
     )
 
 
@@ -89,14 +99,12 @@ def get_client(module):
     is_python_compatible(module, sys.version_info.major, sys.version_info.minor)
 
     # check for Nebulon SDK compatibility
-    installed_sdk_version = __version__.strip()
-    if REQUIRED_NEB_SDK_VERSION != installed_sdk_version:
-        err_msg = "The Nebulon Ansible Collection depends on the Python library"
-        err_msg += f" version {REQUIRED_NEB_SDK_VERSION}. Your current version"
-        err_msg += f" is {installed_sdk_version}. Please install the supported"
-        err_msg += " version with the command"
-        err_msg += f" 'python3 -m pip install nebpyclient=={REQUIRED_NEB_SDK_VERSION}'"
-        module.fail_json(msg=err_msg)
+    validate_sdk(
+        module=module,
+        version=NEBULON_SDK_VERSION,
+        import_error=NEBULON_IMPORT_ERROR,
+        ok_versions=COMPATIBLE_SDK_VERSIONS,
+    )
 
     try:
 
@@ -106,7 +114,7 @@ def get_client(module):
             password=neb_password,
             client_name=client_name,
             client_version=client_version,
-            verbose=False
+            verbose=False,
         )
 
         # login succeeded, return the client
@@ -115,4 +123,8 @@ def get_client(module):
     # pylint: disable=broad-except
     except Exception as err:
         # return the error message from nebulon ON
-        module.fail_json(msg=str(err))
+        module.fail_json(
+            msg="Login failed",
+            error_details=str(err),
+            error_class=type(err).__name__,
+        )
