@@ -55,7 +55,7 @@ REQ_PYTHON_VERSION_MINOR = 6
 # Need to statically provide the collection version here as the standard files
 # where this information can be collected from won't be sent to the remote
 # machine.
-COLLECTION_VERSION = '1.4.0'
+COLLECTION_VERSION = '1.4.1'
 
 
 def get_login_arguments():

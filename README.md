@@ -13,6 +13,7 @@ smartInfrastructure and cloud services.
 
 ## Available modules
 
+- neb_capacity_info - To query for nPod, SPU, and volume capacity information
 - neb_claim_spu - To claim or release a SPU
 - neb_clone - To create or delete a volume clone
 - neb_lun - To create or delete a LUN
@@ -120,7 +121,26 @@ tasks:
 For more detail information and how to use Nebulon Ansible Collection please refer to
 our tutorial page at [Nebulon Ansible Tutorial](https://on.nebulon.com/docs/en-us/tutorials/tutorial-ansible/8041667baadd168c8333f3aa991637c1)
 
+## Known Issues
+
+### TLS connection issues
+
+Some versions of macOS can not forward tokens to SPUs because they cannot negotiate a TLS
+connection. This breaks Ansible playbooks run from macOS.
+
+The version of LibreSSL that ships with some macOS versions cannot negotiate a TLS cipher suite
+with some SPUs. This will generate an SSL handshake failure. Such errors will surface in the
+Python SDK and Ansible playbooks when the SDK attempts secure connections to SPUs,
+resulting in automation failures.
+
+We recommend to use either [Conda](https://docs.conda.io/projects/conda/en/latest/) or
+[Miniconda](https://docs.conda.io/en/latest/miniconda.html) on macOS to avoid this issue.
+
 ## Changelog
+
+### 1.4.1
+
+- Updated readme to include known issues with macOS and SSL
 
 ### 1.4.0
 
