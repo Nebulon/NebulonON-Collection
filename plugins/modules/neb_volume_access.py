@@ -257,7 +257,7 @@ def create_npod_lun(client, volume, lun_id=None):
     # type: (NebPyClient, Volume, int) -> LUN
     """Export a volume to all hosts in an nPod"""
 
-    lun = client.create_lun(
+    client.create_lun(
         lun_input=CreateLUNInput(
             npod_lun=True,
             volume_uuid=volume.uuid,
@@ -265,14 +265,23 @@ def create_npod_lun(client, volume, lun_id=None):
         )
     )
 
-    return lun
+    # get the list of LUNs that were created
+    lun_list = client.get_luns(
+        lun_filter=LUNFilter(
+            volume_uuid=UUIDFilter(
+                equals=volume.uuid,
+            ),
+        )
+    )
+
+    return lun_list.items[0]
 
 
 def create_local_lun(client, volume, lun_id=None):
     # type: (NebPyClient, Volume, int) -> LUN
     """Export a volume to its owner host"""
 
-    lun = client.create_lun(
+    client.create_lun(
         lun_input=CreateLUNInput(
             local=True,
             volume_uuid=volume.uuid,
@@ -281,14 +290,23 @@ def create_local_lun(client, volume, lun_id=None):
         )
     )
 
-    return lun
+    # get the list of LUNs that were created
+    lun_list = client.get_luns(
+        lun_filter=LUNFilter(
+            volume_uuid=UUIDFilter(
+                equals=volume.uuid,
+            ),
+        )
+    )
+
+    return lun_list.items[0]
 
 
 def create_host_lun(client, volume, host_uuid, lun_id=None):
     # type: (NebPyClient, Volume, str, int) -> LUN
     """Export a volume to a specific host"""
 
-    lun = client.create_lun(
+    client.create_lun(
         lun_input=CreateLUNInput(
             local=True,
             volume_uuid=volume.uuid,
@@ -297,7 +315,21 @@ def create_host_lun(client, volume, host_uuid, lun_id=None):
         )
     )
 
-    return lun
+    # get the list of LUNs that were created
+    lun_list = client.get_luns(
+        lun_filter=LUNFilter(
+            volume_uuid=UUIDFilter(
+                equals=volume.uuid,
+            ),
+            and_filter=LUNFilter(
+                host_uuid=UUIDFilter(
+                    equals=host_uuid,
+                )
+            )
+        )
+    )
+
+    return lun_list.items[0]
 
 
 def main():

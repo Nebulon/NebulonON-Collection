@@ -9,7 +9,7 @@ smartInfrastructure and cloud services.
 - Ansible-core 2.10 or higher
 - Python 3.6 or higher
 - Internet connectivity to <https://ucapi.nebcloud.nebuloninc.com/> from host where Ansible is executed
-- Nebulon Python SDK 2.0.8
+- Nebulon Python SDK 2.0.8 or newer
 
 ## Available modules
 
@@ -137,6 +137,10 @@ We recommend to use either [Conda](https://docs.conda.io/projects/conda/en/lates
 [Miniconda](https://docs.conda.io/en/latest/miniconda.html) on macOS to avoid this issue.
 
 ## Changelog
+
+### 1.4.2
+
+- Added version check for Python SDK version 2.0.10
 
 ### 1.4.1
 
